@@ -9,4 +9,6 @@ let
 in
 {
   vector = nixpkgs.vector;
+  nats = nixpkgs.nats-server;
+  tmux = nixpkgs.tmux;
 }

@@ -6,7 +6,6 @@
   inherit (inputs.nixpkgs.lib) mapAttrs optionals;
   inherit (inputs.std) std;
   inherit (inputs.std.lib.dev) mkShell;
-  inherit (cell) configs;
 in
   mapAttrs (_: mkShell) rec {
     default = {...}: {
@@ -14,10 +13,16 @@ in
       imports = [ std.devshellProfiles.default ];
       commands =
         [
-          { category = "operables"; package = cell.apps.vector; }
-
+          { category = "MindWM";
+            package = cell.apps.vector;
+            #description = "Local vector instance to communicate with a MindWM backend";
+          }
+          { category = "MindWM";
+            package = cell.apps.runTmuxSession;
+          }
         ] ++ (
           map (p: { category = "tools"; package = p; }) (with inputs.nixpkgs; [
+            tmux
           ])
         );
     };

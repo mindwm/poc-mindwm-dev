@@ -1,0 +1,7 @@
+.cache/
+.data/
+.direnv/
+
+# nixago: ignore-linked-files
+/vector-client.toml
+/tmuxinator.mindwm.client.yaml

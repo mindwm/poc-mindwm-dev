@@ -7,15 +7,15 @@
         (installables "packages")
         (runnables "apps")
         (containers "containers")
-        (data "configs")
+        (nixago "configs")
         (devshells "shells")
       ];
     } {
       packages = std.harvest self [
 #        ["nats" "packages"]
-        ["mindwm-client" "packages"]
+        ["mindwm_cl" "packages"]
       ];
-      devShells = std.harvest self ["mindwm-client" "shells"];
+      devShells = std.harvest self ["mindwm_cl" "shells"];
     };
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs/23.11";
@@ -26,13 +26,16 @@
     std.url = "github:omgbebebe/std";
     std.inputs.nixpkgs.follows = "nixpkgs";
     std.inputs.devshell.url = "github:numtide/devshell";
-#    std.inputs.n2c.follows = "n2c";
-#    std.inputs.nixago.follows = "nixago";
-#    n2c.url = "github:nlewo/nix2container";
-#    n2c.inputs.nixpkgs.follows = "nixpkgs";
-#    nixago.url = "github:nix-community/nixago";
-#    nixago.inputs.nixpkgs.follows = "nixpkgs";
-#    nixago.inputs.nixago-exts.follows = "";
+    std.inputs.makes.follows = "makes";
+    std.inputs.n2c.follows = "n2c";
+    std.inputs.nixago.follows = "nixago";
+    n2c.url = "github:nlewo/nix2container";
+    n2c.inputs.nixpkgs.follows = "nixpkgs";
+    makes.url = "github:fluidattacks/makes";
+    makes.inputs.nixpkgs.follows = "std/nixpkgs";
+    nixago.url = "github:nix-community/nixago";
+    nixago.inputs.nixpkgs.follows = "nixpkgs";
+    nixago.inputs.nixago-exts.follows = "";
 #    poetry2nix.url = "github:/nix-community/poetry2nix";
 #    poetry2nix.inputs.nixpkgs.follows = "nixpkgs";
   };
