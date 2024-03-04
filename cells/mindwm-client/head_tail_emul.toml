@@ -1,0 +1,21 @@
+[sources.stdin]
+type = "stdin"
+decoding.codec = "json"
+
+[transforms.ht]
+type = "remap"
+inputs = [ "stdin" ]
+source = """
+list = split!(.message, "\n")
+head = list[0]
+tail = filter(list) -> |index, _value| {index > 0}
+del(.message)
+.prompt = head
+.output = join!(tail, separator: "\n")
+"""
+
+[sinks.debug]
+type = "console"
+inputs = [ "ht" ]
+encoding.codec = "json"
+
