@@ -17,12 +17,18 @@ let
       port = 32040;
       host = "127.0.0.1";
       subject = "mindwm.sessionID.feedback";
+      creds = {
+        user = "root";
+        pass = "r00tpass";
+      };
     };
   };
 in rec {
+  inherit backend;
+
   vector_client = (dev.mkNixago rec {
     inherit (backend) vector;
-    template = (import ./tmpl/vector-client.nix) lib;
+    template = (import ./templates/vector-client.nix) lib;
     output = "vector-client.toml";
     data = template {
       inherit (backend) nats;
@@ -31,22 +37,15 @@ in rec {
   });
 
   vector_back = (dev.mkNixago rec {
-    template = (import ./tmpl/vector-back.nix) lib;
+    template = (import ./templates/vector-back.nix) lib;
     output = "vector-back.toml";
     data = template {
-      vector = {
-        bind_address = "0.0.0.0";
-        port = "31030";
-      };
-      nats = {
-        address = "127.0.0.1";
-        port = "31040";
-      };
+      inherit (backend) vector nats;
     };
   });
 
   nats_back.configFile = inputs.nixpkgs.writeText "nats-server.conf" ''
-    listen: "0.0.0.0:31040"
+    listen: $MINDWM_BACK_NATS_LISTEN
     jetstream {}
     authorization: {
       default_permissions = {
@@ -61,7 +60,8 @@ in rec {
     accounts: {
       SYS: {
         users: [
-          { user: root, password: r00tpass }
+          { user: $MINDWM_BACK_NATS_ADMIN_USER,
+            password: $MINDWM_BACK_NATS_ADMIN_PASS }
         ]
       }
     }
@@ -87,7 +87,7 @@ in rec {
 
   tmuxinator = (dev.mkNixago rec {
       output = "tmuxinator.mindwm.client.yaml";
-      template = (import ./tmpl/tmuxinator.mindwm.client.nix) lib;
+      template = (import ./templates/tmuxinator.mindwm.client.nix) lib;
       data = template {
         pkgs = inputs.nixpkgs;
         config = {

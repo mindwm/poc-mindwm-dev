@@ -6,31 +6,29 @@ lib: {
   data_dir = ''''${HOME}/.local/mindwm/vector''; 
   # Pipeline to convert a client bytestreams to words
   # and publigh the words to NATS topic
-  sources.client_vectors = {
+  sources.client_vector_words = {
     type = "vector";
     version = "2";
-    address = "${vector.bind_address}:${toString vector.port}";
+    address = ''''${MINDWM_BACK_VECTOR_ADDR}'';
     acknowledgements.enabled = false;
   };
-  transforms.words = {
-    inputs = [ "client_vectors" ];
-    type = "reduce";
-    ends_when.type = "vrl";
-    ends_when.source = ''
-      .message == " " || .message == "\n" || .message == "\r" || .message == "\t"
+# placeholder for some useful transformers
+  transforms.final_state = {
+    inputs = [ "client_vector_words" ];
+    type = "remap";
+    source = ''
     '';
-    merge_strategies.message = "concat_raw";
   };
-  sinks.nats_words = {
-    inputs = [ "words" ];
+  sinks.mindwm_nats = {
+    inputs = [ "final_state" ];
     type = "nats";
     subject = "io-document.words";
-    url = "nats://${nats.address}:${nats.port}";
+    url = ''nats://''${MINDWM_BACK_NATS_HOST}:''${MINDWM_BACK_NATS_PORT}'';
     encoding.codec = "json";
     auth.strategy = "user_password";
     auth.user_password = {
-      user = "root";
-      password = "r00tpass";
+      user = ''''${MINDWM_BACK_NATS_USER}'';
+      password = ''''${MINDWM_BACK_NATS_PASS}'';
     };
   };
 }

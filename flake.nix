@@ -4,6 +4,7 @@
       inherit inputs;
       cellsFrom = ./cells;
       cellBlocks = with std.blockTypes; [
+#        (data "configs")
         (installables "packages")
         (runnables "apps")
         (containers "containers")

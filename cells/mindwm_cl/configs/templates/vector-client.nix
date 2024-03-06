@@ -32,7 +32,7 @@ lib: {
     inputs = [ "tmux_udp" ];
     group_by = [ "sessionID" ];
     ends_when = ''
-      .message == " " || .message == "\n"
+      .message == " " || .message == "\n" || .message == "\t"
     '';
     merge_strategies.message = "concat_raw";
   };

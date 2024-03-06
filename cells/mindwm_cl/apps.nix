@@ -4,7 +4,7 @@
 }: let
   inherit (inputs) nixpkgs std;
   inherit (std.lib.ops) mkOperable;
-  inherit (inputs.cells) configs;
+  inherit (cell) configs;
 
   l = nixpkgs.lib // builtins;
 
@@ -26,6 +26,11 @@ in {
     package = cell.packages.nats;
     runtimeInputs = [ ];
     runtimeScript = ''
+      export MINDWM_BACK_NATS_BIND="''${MINDWM_BACK_NATS_BIND:-${configs.backend.nats.bind}}"
+      export MINDWM_BACK_NATS_PORT="''${MINDWM_BACK_NATS_PORT:-${toString configs.backend.nats.port}}"
+      export MINDWM_BACK_NATS_LISTEN="''${MINDWM_BACK_NATS_BIND}:''${MINDWM_BACK_NATS_PORT}"
+      export MINDWM_BACK_NATS_ADMIN_USER="''${MINDWM_BACK_NATS_ADMIN_USER:-${configs.backend.nats.creds.user}}"
+      export MINDWM_BACK_NATS_ADMIN_PASS="''${MINDWM_BACK_NATS_ADMIN_PASS:-${configs.backend.nats.creds.pass}}"
       exec ${package}/bin/nats-server -c "${backend.config.nats}" "$@"
     '';
   };
@@ -35,6 +40,17 @@ in {
     runtimeInputs = [ inputs.nixpkgs.coreutils ];
     runtimeScript = ''
       export VECTOR_CONFIG="''${MINDWM_VECTOR_CONFIG:-${backend.config.vector}}"
+
+      export MINDWM_BACK_VECTOR_BIND="''${MINDWM_BACK_VECTOR_BIND:-${configs.backend.vector.bind}}"
+      export MINDWM_BACK_VECTOR_PORT="''${MINDWM_BACK_VECTOR_PORT:-${toString configs.backend.vector.port}}"
+      export MINDWM_BACK_VECTOR_ADDR="''${MINDWM_BACK_VECTOR_BIND}:''${MINDWM_BACK_VECTOR_PORT}"
+
+      export MINDWM_BACK_NATS_HOST="''${MINDWM_BACK_NATS_HOST:-${configs.backend.nats.host}}"
+      export MINDWM_BACK_NATS_PORT="''${MINDWM_BACK_NATS_PORT:-${toString configs.backend.nats.port}}"
+      export MINDWM_BACK_NATS_ADDR="nats://''${MINDWM_BACK_NATS_HOST}:''${MINDWM_BACK_NATS_PORT}"
+      export MINDWM_BACK_NATS_USER="''${MINDWM_BACK_NATS_USER:-${configs.backend.nats.creds.user}}"
+      export MINDWM_BACK_NATS_PASS="''${MINDWM_BACK_NATS_PASS:-${configs.backend.nats.creds.pass}}"
+
       echo "Starting Vector with ''${VECTOR_CONFIG} as config..."
       mkdir -p "$HOME/.local/mindwm/vector"
       ${package}/bin/vector validate && \
