@@ -6,40 +6,74 @@
   inherit (std.lib.ops) mkOperable;
 
   l = nixpkgs.lib // builtins;
-  vector.config = cell.configs.vector.configFile;
-  nats.config = cell.configs.nats.configFile;
-  tmux.config = cell.configs.tmux.configFile;
-  tmuxinator.config = cell.configs.tmuxinator.configFile;
+
+  backend.config = {
+    nats = cell.configs.nats_back.configFile;
+    vector = cell.configs.vector_back.configFile;
+  };
+
+  client.config = {
+    nats = cell.configs.nats_client.configFile;
+    vector = cell.configs.vector_client.configFile;
+    tmux = cell.configs.tmux.configFile;
+    tmuxinator = cell.configs.tmuxinator.configFile;
+  };
 
 in {
-  vector = mkOperable rec {
+# backend services
+  nats_back = mkOperable rec {
+    package = cell.packages.nats;
+    runtimeInputs = [ ];
+    runtimeScript = ''
+      exec ${package}/bin/nats-server -c "${backend.config.nats}" "$@"
+    '';
+  };
+
+  vector_back = mkOperable rec {
     package = cell.packages.vector;
     runtimeInputs = [ inputs.nixpkgs.coreutils ];
     runtimeScript = ''
+      export VECTOR_CONFIG="''${MINDWM_VECTOR_CONFIG:-${backend.config.vector}}"
+      echo "Starting Vector with ''${VECTOR_CONFIG} as config..."
       mkdir -p "$HOME/.local/mindwm/vector"
-      exec ${package}/bin/vector validate --config-toml="${vector.config}" && \
-      exec ${package}/bin/vector --config-toml="${vector.config}" "$@"
+      ${package}/bin/vector validate && \
+      exec ${package}/bin/vector "$@"
     '';
-#    meta.mainProgram = "vector";
   };
-  nats = mkOperable rec {
+
+# client services
+  nats_client = mkOperable rec {
     package = cell.packages.nats;
     runtimeInputs = [ ];
 #exec ${package}/bin/nats-server --user root --pass r00tpass -js "$@"
     runtimeScript = ''
-      exec ${package}/bin/nats-server -c "${nats.config}" "$@"
+      exec ${package}/bin/nats-server -c "${client.config.nats}" "$@"
     '';
   };
+
+  vector_client = mkOperable rec {
+    package = cell.packages.vector;
+    runtimeInputs = [ inputs.nixpkgs.coreutils ];
+    runtimeScript = ''
+      export VECTOR_CONFIG="''${MINDWM_VECTOR_CONFIG:-${backend.config.vector}}"
+      echo "Starting Vector with ''${VECTOR_CONFIG} as config..."
+      mkdir -p "$HOME/.local/mindwm/vector"
+      ${package}/bin/vector validate && \
+      exec ${package}/bin/vector "$@"
+    '';
+  };
+
   tmux = mkOperable rec {
     package = inputs.nixpkgs.tmux;
     runtimeScript = ''
-      exec ${package}/bin/tmux -f "${tmux.config}" "$@"
+      exec ${package}/bin/tmux -f "${client.config.tmux}" "$@"
     '';
   };
+
   runTmuxSession = mkOperable rec {
     package = inputs.nixpkgs.tmuxinator;
     runtimeScript = ''
-      exec ${package}/bin/tmuxinator start -n MindWM -p "${tmuxinator.config}" "$@"
+      exec ${package}/bin/tmuxinator start -n MindWM -p "${client.config.tmuxinator}" "$@"
     '';
   };
 

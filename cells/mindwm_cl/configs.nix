@@ -8,17 +8,19 @@ let
 
   backend = {
     vector = {
-      host = "127.0.0.1";
+      bind = "0.0.0.0";
       port = 32030;
+      host = "127.0.0.1";
     };
     nats = {
-      host = "nats_server";
-      port = 4222;
+      bind = "0.0.0.0";
+      port = 32040;
+      host = "127.0.0.1";
       subject = "mindwm.sessionID.feedback";
     };
   };
 in rec {
-  vector = (dev.mkNixago rec {
+  vector_client = (dev.mkNixago rec {
     inherit (backend) vector;
     template = (import ./tmpl/vector-client.nix) lib;
     output = "vector-client.toml";
@@ -28,8 +30,23 @@ in rec {
     };
   });
 
-  nats.configFile = inputs.nixpkgs.writeText "nats-server.conf" ''
-    listen: 0.0.0.0:4222
+  vector_back = (dev.mkNixago rec {
+    template = (import ./tmpl/vector-back.nix) lib;
+    output = "vector-back.toml";
+    data = template {
+      vector = {
+        bind_address = "0.0.0.0";
+        port = "31030";
+      };
+      nats = {
+        address = "127.0.0.1";
+        port = "31040";
+      };
+    };
+  });
+
+  nats_back.configFile = inputs.nixpkgs.writeText "nats-server.conf" ''
+    listen: "0.0.0.0:31040"
     jetstream {}
     authorization: {
       default_permissions = {

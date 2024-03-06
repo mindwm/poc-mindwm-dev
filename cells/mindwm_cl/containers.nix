@@ -6,16 +6,16 @@
   l = nixpkgs.lib // builtins;
 
 in {
-  vector = std.lib.ops.mkStandardOCI rec {
-    operable = cell.apps.vector;
+  vector_back = std.lib.ops.mkStandardOCI rec {
+    operable = cell.apps.vector_back;
     name = "vector";
     tag = "latest";
     inherit (operable) meta;
 #    meta.mainProgram = "${operable.package}/out/vector";
   };
-  nats = std.lib.ops.mkStandardOCI rec {
-    operable = cell.apps.nats;
-    name = "nats-server";
+  nats_back = std.lib.ops.mkStandardOCI rec {
+    operable = cell.apps.nats_back;
+    name = "nats";
     tag = "latest";
     inherit (operable) meta;
   };
