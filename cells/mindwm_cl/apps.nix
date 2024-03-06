@@ -4,19 +4,20 @@
 }: let
   inherit (inputs) nixpkgs std;
   inherit (std.lib.ops) mkOperable;
+  inherit (inputs.cells) configs;
 
   l = nixpkgs.lib // builtins;
 
   backend.config = {
-    nats = cell.configs.nats_back.configFile;
-    vector = cell.configs.vector_back.configFile;
+    nats = configs.nats_back.configFile;
+    vector = configs.vector_back.configFile;
   };
 
   client.config = {
-    nats = cell.configs.nats_client.configFile;
-    vector = cell.configs.vector_client.configFile;
-    tmux = cell.configs.tmux.configFile;
-    tmuxinator = cell.configs.tmuxinator.configFile;
+    nats = configs.nats_client.configFile;
+    vector = configs.vector_client.configFile;
+    tmux = configs.tmux.configFile;
+    tmuxinator = configs.tmuxinator.configFile;
   };
 
 in {
