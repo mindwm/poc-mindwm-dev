@@ -1,16 +1,16 @@
 services:
-  vector_client:
-    image: "vector:latest"
+  vector_back:
+    image: "vector-back:latest"
     ports:
       - "8000:5000"
     environment:
       - NATS_ENDPOINT="nats_server:4222"
     depends_on:
-      - nats_server
+      - nats_back
     networks:
       - mindwm_lab
-  nats_server:
-    image: "nats-server:latest"
+  nats_back:
+    image: "nats-back:latest"
     ports:
       - "4222:4222"
     networks:
