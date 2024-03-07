@@ -6,10 +6,23 @@ let
   inherit (inputs.nixpkgs) lib;
   inherit (inputs.std.lib) dev;
 
-  client = {
+  client = rec {
     vector.udp = {
       bind = "127.0.0.1";
       port = "32020";
+    };
+    vector.envVars = {
+      VECTOR_CONFIG = cell.configs.vector_client.configFile;
+      MINDWM_CLIENT_VECTOR_UDP_BIND = vector.udp.bind;
+      MINDWM_CLIENT_VECTOR_UDP_PORT = (toString vector.udp.port);
+      MINDWM_CLIENT_NATS_FEEDBACK_HOST = nats.feedback.host;
+      MINDWM_CLIENT_NATS_FEEDBACK_PORT = (toString nats.feedback.port);
+      MINDWM_CLIENT_NATS_FEEDBACK_USER = nats.feedback.creds.user;
+      MINDWM_CLIENT_NATS_FEEDBACK_PASS = nats.feedback.creds.pass;
+      MINDWM_CLIENT_NATS_FEEDBACK_SUBJECT = nats.feedback.subject;
+      MINDWM_BACK_VECTOR_HOST = backend.vector.host;
+      MINDWM_BACK_VECTOR_PORT = (toString backend.vector.port);
+      MINDWM_CLIENT_SESSION_ID = "localDebugSession";
     };
     nats.feedback = {
       host = backend.nats.host;
@@ -18,11 +31,20 @@ let
       creds = backend.nats.creds;
     };
   };
-  backend = {
+  backend = rec {
     vector = {
       bind = "0.0.0.0";
       port = 32030;
       host = "127.0.0.1";
+      envVars = {
+        VECTOR_CONFIG = cell.configs.vector_back.configFile;
+        MINDWM_BACK_VECTOR_BIND = vector.bind;
+        MINDWM_BACK_VECTOR_PORT = (toString vector.port);
+        MINDWM_BACK_NATS_HOST = nats.host;
+        MINDWM_BACK_NATS_PORT = (toString nats.port);
+        MINDWM_BACK_NATS_USER = nats.creds.user;
+        MINDWM_BACK_NATS_PASS = nats.creds.pass;
+      };
     };
     nats = {
       bind = "0.0.0.0";
@@ -32,6 +54,12 @@ let
       creds = {
         user = "root";
         pass = "r00tpass";
+      };
+      envVars = {
+        MINDWM_BACK_NATS_BIND = nats.bind;
+        MINDWM_BACK_NATS_PORT = (toString nats.port);
+        MINDWM_BACK_NATS_ADMIN_USER = nats.creds.user;
+        MINDWM_BACK_NATS_ADMIN_PASS = nats.creds.pass;
       };
     };
   };
@@ -104,5 +132,46 @@ in rec {
           feedback.port = 30009;
         };
       };
+  });
+
+  compose_back = (dev.mkNixago rec {
+    output = "compose-back.yaml";
+    data = {
+      networks.mindwm_lab = {};
+      services = {
+        nats_back = let port = (toString backend.nats.port); in {
+          image = cell.containers.nats_back.image.name;
+          # NOTE: environment vars can be ether a list of string or map
+          # let's keep is as map
+          # NOTE: but not for `docker compose` command:)
+          environment = lib.mapAttrsToList (n: v: "${n}=${v}") backend.nats.envVars;
+          #environment = backend.nats.envVars;
+          ports = [ "${port}:${port}" ];
+          networks = [ "mindwm_lab" ];
+        };
+        vector_back = let port = (toString backend.vector.port); in {
+          image = cell.containers.vector_back.image.name;
+          environment = lib.mapAttrsToList (n: v: "${n}=${v}") (lib.overrideExisting backend.vector.envVars
+              { MINDWM_BACK_NATS_HOST = "nats_back";
+              }
+              );
+          ports = [ "${port}:${port}" ];
+          networks = [ "mindwm_lab" ];
+          depends_on = [ "nats_back" ];
+        };
+      };
+    };
+  });
+
+  compose_client = (dev.mkNixago rec {
+    output = "compose-client.yaml";
+    template = (import ./templates/docker-compose.nix) lib;
+    data = template {
+      services = {
+        nats_client = {};
+        vector_input = {};
+        vector_feedback = {};
+      };
+    };
   });
 }

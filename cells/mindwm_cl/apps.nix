@@ -20,37 +20,6 @@
     tmuxinator = configs.tmuxinator.configFile;
   };
 
-  envVars = {
-    nats_back = {
-      MINDWM_BACK_NATS_BIND = configs.backend.nats.bind;
-      MINDWM_BACK_NATS_PORT = (toString configs.backend.nats.port);
-      MINDWM_BACK_NATS_ADMIN_USER = configs.backend.nats.creds.user;
-      MINDWM_BACK_NATS_ADMIN_PASS = configs.backend.nats.creds.pass;
-    };
-    vector_back = {
-      VECTOR_CONFIG = backend.config.vector;
-      MINDWM_BACK_VECTOR_BIND = configs.backend.vector.bind;
-      MINDWM_BACK_VECTOR_PORT = (toString configs.backend.vector.port);
-      MINDWM_BACK_NATS_HOST = configs.backend.nats.host;
-      MINDWM_BACK_NATS_PORT = (toString configs.backend.nats.port);
-      MINDWM_BACK_NATS_USER = configs.backend.nats.creds.user;
-      MINDWM_BACK_NATS_PASS = configs.backend.nats.creds.pass;
-    };
-    vector_client = {
-      VECTOR_CONFIG = client.config.vector;
-      MINDWM_CLIENT_VECTOR_UDP_BIND = configs.client.vector.udp.bind;
-      MINDWM_CLIENT_VECTOR_UDP_PORT = (toString configs.client.vector.udp.port);
-      MINDWM_CLIENT_NATS_FEEDBACK_HOST = configs.client.nats.feedback.host;
-      MINDWM_CLIENT_NATS_FEEDBACK_PORT = (toString configs.client.nats.feedback.port);
-      MINDWM_CLIENT_NATS_FEEDBACK_USER = configs.client.nats.feedback.creds.user;
-      MINDWM_CLIENT_NATS_FEEDBACK_PASS = configs.client.nats.feedback.creds.pass;
-      MINDWM_CLIENT_NATS_FEEDBACK_SUBJECT = configs.client.nats.feedback.subject;
-      MINDWM_BACK_VECTOR_HOST = configs.backend.vector.host;
-      MINDWM_BACK_VECTOR_PORT = (toString configs.backend.vector.port);
-      MINDWM_CLIENT_SESSION_ID = "localDebugSession";
-    };
-  };
-
   mkShellEnvVars = l.foldlAttrs (acc: name: val: ''
     ${acc}
     export ${name}="''${${name}:-${val}}"'') "";
@@ -61,7 +30,7 @@ in {
     package = cell.packages.nats;
     runtimeInputs = [ ];
     runtimeScript = ''
-      ${mkShellEnvVars envVars.nats_back}
+      ${mkShellEnvVars cell.configs.backend.nats.envVars}
       export MINDWM_BACK_NATS_LISTEN="''${MINDWM_BACK_NATS_BIND}:''${MINDWM_BACK_NATS_PORT}"
       exec ${package}/bin/nats-server -c "${backend.config.nats}" "$@"
     '';
@@ -71,7 +40,7 @@ in {
     package = cell.packages.vector;
     runtimeInputs = [ inputs.nixpkgs.coreutils ];
     runtimeScript = ''
-      ${mkShellEnvVars envVars.vector_back}
+      ${mkShellEnvVars cell.configs.backend.vector.envVars}
       export MINDWM_BACK_VECTOR_ADDR="''${MINDWM_BACK_VECTOR_BIND}:''${MINDWM_BACK_VECTOR_PORT}"
       export MINDWM_BACK_NATS_ADDR="nats://''${MINDWM_BACK_NATS_HOST}:''${MINDWM_BACK_NATS_PORT}"
       mkdir -p "$HOME/.local/mindwm/vector"
@@ -94,7 +63,7 @@ in {
     package = cell.packages.vector;
     runtimeInputs = [ inputs.nixpkgs.coreutils ];
     runtimeScript = ''
-      ${mkShellEnvVars envVars.vector_client}
+      ${mkShellEnvVars cell.configs.client.vector.envVars}
       export MINDWM_CLIENT_VECTOR_UDP_ADDR="''${MINDWM_CLIENT_VECTOR_UDP_BIND}:''${MINDWM_CLIENT_VECTOR_UDP_PORT}"
       export MINDWM_CLIENT_NATS_FEEDBACK_ADDR="nats://''${MINDWM_CLIENT_NATS_FEEDBACK_HOST}:''${MINDWM_CLIENT_NATS_FEEDBACK_PORT}"
 
@@ -116,6 +85,21 @@ in {
     package = inputs.nixpkgs.tmuxinator;
     runtimeScript = ''
       exec ${package}/bin/tmuxinator start -n MindWM -p "${client.config.tmuxinator}" "$@"
+    '';
+  };
+
+  load_all_images = mkOperable rec {
+    package = { name = "load-oci_images"; };
+    runtimeScript = ''
+      std list | rg '//.*/containers.*:load' -o | xargs -I% std %
+    '';
+  };
+
+  compose_back = mkOperable rec {
+    package = { name = "run-compose-back"; };
+    runtimeScript = ''
+      std //mindwm_cl/configs/compose_back:populate
+      docker compose -f ./compose-back.yaml up
     '';
   };
 

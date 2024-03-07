@@ -4,5 +4,6 @@
 result
 
 # nixago: ignore-linked-files
+/compose-back.yaml
 /vector-client.toml
 /tmuxinator.mindwm.client.yaml

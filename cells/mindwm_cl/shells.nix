@@ -16,12 +16,20 @@ in
           { category = "MindWM";
             package = cell.apps.runTmuxSession;
           }
+          {
+            category = "MindWM";
+            package = cell.apps.load_all_images;
+          }
+          {
+            category = "MindWM";
+            package = cell.apps.compose_back;
+          }
         ] ++ (
           map (p: { category = "tools"; package = p; }) (with inputs.nixpkgs; [
             tmux
             netcat-openbsd
             natscli
-            vim gnused bat jq
+            vim gnused bat jq yq ripgrep fd eza
           ])
         );
     };
