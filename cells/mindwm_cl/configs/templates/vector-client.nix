@@ -34,7 +34,7 @@ lib: {
     inputs = [ "with_meta" ];
     group_by = [ "sessionID" ];
     ends_when = ''
-      .message == " " || .message == "''\n" || .message == "''\t"
+      .message == " " || .message == "''\n" || .message == "''\t" || .message == "''\r"
     '';
     merge_strategies.message = "concat_raw";
   };

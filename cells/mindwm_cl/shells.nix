@@ -21,6 +21,7 @@ in
             tmux
             netcat-openbsd
             natscli
+            vim gnused bat jq
           ])
         );
     };
