@@ -2,9 +2,9 @@ services:
   vector_back:
     image: "vector-back:latest"
     ports:
-      - "8000:5000"
+      - "32030:32020"
     environment:
-      - NATS_ENDPOINT="nats_server:4222"
+      - MINDWM_BACK_NATS_HOST=nats_back
     depends_on:
       - nats_back
     networks:
@@ -12,7 +12,7 @@ services:
   nats_back:
     image: "nats-back:latest"
     ports:
-      - "4222:4222"
+      - "32040:32040"
     networks:
       - mindwm_lab
 
