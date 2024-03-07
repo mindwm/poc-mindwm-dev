@@ -1,6 +1,6 @@
 services:
   vector_back:
-    image: "vector-back:latest"
+    image: "mindwm/vector-back:latest"
     ports:
       - "32030:32020"
     environment:
@@ -10,7 +10,7 @@ services:
     networks:
       - mindwm_lab
   nats_back:
-    image: "nats-back:latest"
+    image: "mindwm/nats-back:latest"
     ports:
       - "32040:32040"
     networks:
