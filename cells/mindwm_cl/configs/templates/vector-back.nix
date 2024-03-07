@@ -1,6 +1,4 @@
 lib: {
-  nats
-, vector
 }: 
 {
   data_dir = ''''${HOME}/.local/mindwm/vector''; 
@@ -11,6 +9,11 @@ lib: {
     version = "2";
     address = ''''${MINDWM_BACK_VECTOR_ADDR}'';
     acknowledgements.enabled = false;
+  };
+  sinks.debug = {
+    type = "console";
+    inputs = [ "client_vector_words" ];
+    encoding.codec = "raw_message";
   };
 # placeholder for some useful transformers
   transforms.final_state = {

@@ -72,7 +72,22 @@ in {
     package = cell.packages.vector;
     runtimeInputs = [ inputs.nixpkgs.coreutils ];
     runtimeScript = ''
-      export VECTOR_CONFIG="''${MINDWM_VECTOR_CONFIG:-${backend.config.vector}}"
+      export VECTOR_CONFIG="''${MINDWM_VECTOR_CONFIG:-${client.config.vector}}"
+
+      export MINDWM_CLIENT_VECTOR_UDP_BIND="''${MINDWM_CLIENT_VECTOR_UDP_BIND:-${configs.client.vector.udp.bind}}"
+      export MINDWM_CLIENT_VECTOR_UDP_PORT="''${MINDWM_CLIENT_VECTOR_UDP_PORT:-${toString configs.client.vector.udp.port}}"
+      export MINDWM_CLIENT_VECTOR_UDP_ADDR="''${MINDWM_CLIENT_VECTOR_UDP_BIND}:''${MINDWM_CLIENT_VECTOR_UDP_PORT}"
+
+      export MINDWM_CLIENT_NATS_FEEDBACK_HOST="''${MINDWM_CLIENT_NATS_FEEDBACK_HOST:-${configs.client.nats.feedback.host}}"
+      export MINDWM_CLIENT_NATS_FEEDBACK_PORT="''${MINDWM_CLIENT_NATS_FEEDBACK_PORT:-${toString configs.client.nats.feedback.port}}"
+      export MINDWM_CLIENT_NATS_FEEDBACK_ADDR="nats://''${MINDWM_CLIENT_NATS_FEEDBACK_HOST}:''${MINDWM_CLIENT_NATS_FEEDBACK_PORT}"
+      export MINDWM_CLIENT_NATS_FEEDBACK_USER="''${MINDWM_CLIENT_NATS_FEEDBACK_USER:-${configs.client.nats.feedback.creds.user}}"
+      export MINDWM_CLIENT_NATS_FEEDBACK_PASS="''${MINDWM_CLIENT_NATS_FEEDBACK_PASS:-${configs.client.nats.feedback.creds.pass}}"
+      export MINDWM_CLIENT_NATS_FEEDBACK_SUBJECT="''${MINDWM_CLIENT_NATS_FEEDBACK_SUBJECT:-${configs.client.nats.feedback.subject}}"
+
+      export MINDWM_BACK_VECTOR_HOST="''${MINDWM_BACK_VECTOR_HOST:-${configs.backend.vector.host}}"
+      export MINDWM_BACK_VECTOR_PORT="''${MINDWM_BACK_VECTOR_PORT:-${toString configs.backend.vector.port}}"
+
       echo "Starting Vector with ''${VECTOR_CONFIG} as config..."
       mkdir -p "$HOME/.local/mindwm/vector"
       ${package}/bin/vector validate && \

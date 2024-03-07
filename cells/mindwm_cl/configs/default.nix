@@ -6,6 +6,18 @@ let
   inherit (inputs.nixpkgs) lib;
   inherit (inputs.std.lib) dev;
 
+  client = {
+    vector.udp = {
+      bind = "127.0.0.1";
+      port = "32020";
+    };
+    nats.feedback = {
+      host = backend.nats.host;
+      port = backend.nats.port;
+      subject = "clients.sessionID.feedback";
+      creds = backend.nats.creds;
+    };
+  };
   backend = {
     vector = {
       bind = "0.0.0.0";
@@ -25,22 +37,12 @@ let
   };
 in rec {
   inherit backend;
-
-  vector_client = (dev.mkNixago rec {
-    inherit (backend) vector;
-    template = (import ./templates/vector-client.nix) lib;
-    output = "vector-client.toml";
-    data = template {
-      inherit (backend) nats;
-      inherit (backend) vector;
-    };
-  });
+  inherit client;
 
   vector_back = (dev.mkNixago rec {
     template = (import ./templates/vector-back.nix) lib;
     output = "vector-back.toml";
     data = template {
-      inherit (backend) vector nats;
     };
   });
 
@@ -68,6 +70,13 @@ in rec {
 
     system_account: SYS
   '';
+
+  vector_client = (dev.mkNixago rec {
+    template = (import ./templates/vector-client.nix) lib;
+    output = "vector-client.toml";
+    data = template {
+    };
+  });
 
   tmux.configFile =
     let

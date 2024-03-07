@@ -1,28 +1,22 @@
 lib: {
-  nats
-, vector
 }: 
 {
   data_dir = ''''${HOME}/.local/mindwm/vector''; 
-  sources.stdin = {
-    type = "stdin";
-    decoding.codec = "json";
-  };
   sources.tmux_udp = {
     type = "socket";
     mode = "udp";
     decoding.codec = "bytes";
-    address = "0.0.0.0:30007";
+    address = ''''${MINDWM_CLIENT_VECTOR_UDP_BIND}:''${MINDWM_CLIENT_VECTOR_UDP_PORT}'';
   };
   sources.feedback = {
     type = "nats";
     connection_name = "hostname-client-vector";
-    subject = "${nats.subject}";
-    url = "nats://${nats.host}:${toString nats.port}";
+    subject = ''''${MINDWM_CLIENT_NATS_FEEDBACK_SUBJECT}'';
+    url = ''nats://''${MINDWM_CLIENT_NATS_FEEDBACK_HOST}:''${MINDWM_CLIENT_NATS_FEEDBACK_PORT}'';
     auth.strategy = "user_password";
     auth.user_password = {
-      user = "root";
-      password = "r00tpass";
+      user = ''''${MINDWM_CLIENT_NATS_FEEDBACK_USER}'';
+      password = ''''${MINDWM_CLIENT_NATS_FEEDBACK_PASS}'';
     };
     decoding.codec = "json";
   };
@@ -40,14 +34,20 @@ lib: {
   sinks.mindwm_vector = {
     type = "vector";
     inputs = [ "tmux_words" ];
-    address = "127.0.0.1:30007";
+    address = ''nats://''${MINDWM_BACK_VECTOR_HOST}:''${MINDWM_BACK_VECTOR_PORT}'';
     version = "2";
     acknowledgements.enabled = false;
   };
 
-  sinks.debug = {
+  sinks.feedback_to_console = {
     type = "console";
     inputs = [ "feedback" ];
     encoding.codec = "text";
+  };
+
+  sinks.debug = {
+    type = "console";
+    inputs = [ "tmux_udp" ];
+    encoding.codec = "raw_message";
   };
 }
