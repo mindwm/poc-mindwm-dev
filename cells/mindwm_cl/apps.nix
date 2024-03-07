@@ -88,6 +88,8 @@ in {
       export MINDWM_BACK_VECTOR_HOST="''${MINDWM_BACK_VECTOR_HOST:-${configs.backend.vector.host}}"
       export MINDWM_BACK_VECTOR_PORT="''${MINDWM_BACK_VECTOR_PORT:-${toString configs.backend.vector.port}}"
 
+      export MINDWM_CLIENT_SESSION_ID="localDebugSession"
+
       echo "Starting Vector with ''${VECTOR_CONFIG} as config..."
       mkdir -p "$HOME/.local/mindwm/vector"
       ${package}/bin/vector validate && \

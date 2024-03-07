@@ -21,12 +21,20 @@ lib: {
     decoding.codec = "json";
   };
 
+  transforms.with_meta = {
+    type = "remap";
+    inputs = [ "tmux_udp" ];
+    source = ''
+      .sessionID = "''${MINDWM_CLIENT_SESSION_ID}"
+    '';
+  };
+
   transforms.tmux_words = {
     type = "reduce";
-    inputs = [ "tmux_udp" ];
+    inputs = [ "with_meta" ];
     group_by = [ "sessionID" ];
     ends_when = ''
-      .message == " " || .message == "\n" || .message == "\t"
+      .message == " " || .message == "''\n" || .message == "''\t"
     '';
     merge_strategies.message = "concat_raw";
   };
@@ -34,7 +42,7 @@ lib: {
   sinks.mindwm_vector = {
     type = "vector";
     inputs = [ "tmux_words" ];
-    address = ''nats://''${MINDWM_BACK_VECTOR_HOST}:''${MINDWM_BACK_VECTOR_PORT}'';
+    address = ''''${MINDWM_BACK_VECTOR_HOST}:''${MINDWM_BACK_VECTOR_PORT}'';
     version = "2";
     acknowledgements.enabled = false;
   };
@@ -47,7 +55,7 @@ lib: {
 
   sinks.debug = {
     type = "console";
-    inputs = [ "tmux_udp" ];
-    encoding.codec = "raw_message";
+    inputs = [ "tmux_words" ];
+    encoding.codec = "json";
   };
 }
