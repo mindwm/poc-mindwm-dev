@@ -19,6 +19,7 @@ in
         ] ++ (
           map (p: { category = "tools"; package = p; }) (with inputs.nixpkgs; [
             tmux
+            netcat-openbsd
             natscli
           ])
         );
