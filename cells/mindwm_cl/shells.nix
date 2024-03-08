@@ -24,6 +24,10 @@ in
             category = "MindWM";
             package = cell.apps.compose_back;
           }
+          {
+            category = "MindWM";
+            package = cell.apps.current_subject;
+          }
         ] ++ (
           map (p: { category = "tools"; package = p; }) (with inputs.nixpkgs; [
             tmux

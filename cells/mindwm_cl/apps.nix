@@ -24,7 +24,7 @@
     ${acc}
     export ${name}="''${${name}:-${val}}"'') "";
 
-in {
+in rec {
 # backend services
   nats_back = mkOperable rec {
     package = cell.packages.nats;
@@ -55,6 +55,8 @@ in {
     runtimeInputs = [ ];
 #exec ${package}/bin/nats-server --user root --pass r00tpass -js "$@"
     runtimeScript = ''
+      ${mkShellEnvVars cell.configs.client.nats.envVars}
+      export MINDWM_CLIENT_NATS_LISTEN="''${MINDWM_CLIENT_NATS_BIND}:''${MINDWM_CLIENT_NATS_PORT}"
       exec ${package}/bin/nats-server -c "${client.config.nats}" "$@"
     '';
   };
@@ -82,11 +84,32 @@ in {
   };
 
   runTmuxSession = mkOperable rec {
-    package = inputs.nixpkgs.tmuxinator;
+    package = { name = "mindwm-demo"; };
+#package = inputs.nixpkgs.tmuxinator;
+    runtimeInputs = (with nixpkgs; [
+      toybox
+      less
+      jq yq
+      bat fd ripgrep eza
+      cowsay
+      natscli
+    ]) ++ (with cell.packages; [
+      mindwm_current_subject
+      tmux
+      tmuxinator
+    ]) ++ [
+      nats_client
+      vector_client
+    ];
+    runtimeShell = nixpkgs.bashInteractive;
     runtimeScript = ''
-      exec ${package}/bin/tmuxinator start -n MindWM -p "${client.config.tmuxinator}" "$@"
+      # FIX: don't know why but tmux is not in PATH by default
+      PATH="$PATH:${cell.packages.tmux}/bin"
+      exec tmuxinator start -n MindWM -p "${client.config.tmuxinator}" "$@"
     '';
   };
+
+#      PATH="$PATH:${cell.packages.mindwm_current_subject}/bin"
 
   load_all_images = mkOperable rec {
     package = { name = "load-oci_images"; };
@@ -108,5 +131,12 @@ in {
     runtimeScript = ''
       exec ${package}/bin/cowsay "Are you ready to join to the MindWM?" "$@"
     '';
+  };
+
+  current_subject = mkOperable rec {
+    package = cell.packages.mindwm_current_subject;
+    runtimeScript = "${package}/bin/get_current_subject.sh";
+#    package = { name = "current-subject"; };
+#    runtimeScript = (builtins.readFile ./scripts/get_current_subject.sh);
   };
 }

@@ -24,6 +24,19 @@ let
       MINDWM_BACK_VECTOR_PORT = (toString backend.vector.port);
       MINDWM_CLIENT_SESSION_ID = "localDebugSession";
     };
+    nats = {
+      bind = "0.0.0.0";
+      port = 32040;
+      host = "127.0.0.1";
+      subject = "mindwm.sessionID.feedback";
+      creds = backend.nats.creds;
+      envVars = {
+        MINDWM_CLIENT_NATS_BIND = nats.bind;
+        MINDWM_CLIENT_NATS_PORT = (toString nats.port);
+        MINDWM_CLIENT_NATS_ADMIN_USER = nats.creds.user;
+        MINDWM_CLIENT_NATS_ADMIN_PASS = nats.creds.pass;
+      };
+    };
     nats.feedback = {
       host = backend.nats.host;
       port = backend.nats.port;
@@ -99,6 +112,31 @@ in rec {
     system_account: SYS
   '';
 
+  nats_client.configFile = inputs.nixpkgs.writeText "nats-client.conf" ''
+    listen: $MINDWM_CLIENT_NATS_LISTEN
+    jetstream {}
+    authorization: {
+      default_permissions = {
+        publish = ">"
+        subscribe = [">", ">"]
+      }
+      users = [
+        { user: user, password: pass }
+      ]
+    }
+
+    accounts: {
+      SYS: {
+        users: [
+          { user: $MINDWM_CLIENT_NATS_ADMIN_USER,
+            password: $MINDWM_CLIENT_NATS_ADMIN_PASS }
+        ]
+      }
+    }
+
+    system_account: SYS
+  '';
+
   vector_client = (dev.mkNixago rec {
     template = (import ./templates/vector-client.nix) lib;
     output = "vector-client.toml";
@@ -128,8 +166,8 @@ in rec {
       data = template {
         pkgs = inputs.nixpkgs;
         config = {
+          inherit client;
           tmux.config = tmux.configFile;
-          feedback.port = 30009;
         };
       };
   });

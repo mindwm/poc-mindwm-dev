@@ -39,6 +39,11 @@ lib: {
     merge_strategies.message = "concat_raw";
   };
 
+  /*
+   * right now it's deprecated
+   * sanitized workd should be put
+   * directly to the backend`s NATS
+   * from a local PyTe instance
   sinks.mindwm_vector = {
     type = "vector";
     inputs = [ "tmux_words" ];
@@ -46,7 +51,7 @@ lib: {
     version = "2";
     acknowledgements.enabled = false;
   };
-
+  */
   sinks.feedback_to_console = {
     type = "console";
     inputs = [ "feedback" ];

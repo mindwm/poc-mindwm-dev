@@ -26,4 +26,11 @@ in {
     tag = "latest";
     inherit (operable) meta;
   };
+  mindwm_client = std.lib.ops.mkStandardOCI rec {
+#operable = cell.apps.mindwm_client;
+    operable = cell.apps.runTmuxSession;
+    name = "mindwm/mindwm-client";
+    tag = "latest";
+    inherit (operable) meta;
+  };
 }
