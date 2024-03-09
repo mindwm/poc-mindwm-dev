@@ -34,7 +34,6 @@ in
             netcat-openbsd
             natscli
             vim gnused bat jq yq ripgrep fd eza
-          ])
-        );
+          ]));
     };
   }

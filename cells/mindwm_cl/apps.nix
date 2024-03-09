@@ -89,6 +89,7 @@ in rec {
     runtimeInputs = (with nixpkgs; [
       toybox
       less
+      netcat-openbsd
       jq yq
       bat fd ripgrep eza
       cowsay
