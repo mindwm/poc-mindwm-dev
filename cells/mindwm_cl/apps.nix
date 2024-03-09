@@ -28,6 +28,7 @@ in rec {
 # backend services
   nats_back = mkOperable rec {
     package = cell.packages.nats;
+    name = "nats-back";
     runtimeInputs = [ ];
     runtimeScript = ''
       ${mkShellEnvVars cell.configs.backend.nats.envVars}
@@ -38,6 +39,7 @@ in rec {
 
   vector_back = mkOperable rec {
     package = cell.packages.vector;
+    name = "vector-back";
     runtimeInputs = [ inputs.nixpkgs.coreutils ];
     runtimeScript = ''
       ${mkShellEnvVars cell.configs.backend.vector.envVars}
@@ -52,6 +54,7 @@ in rec {
 # client services
   nats_client = mkOperable rec {
     package = cell.packages.nats;
+    name = "nats-client";
     runtimeInputs = [ ];
 #exec ${package}/bin/nats-server --user root --pass r00tpass -js "$@"
     runtimeScript = ''
@@ -63,6 +66,7 @@ in rec {
 
   vector_client = mkOperable rec {
     package = cell.packages.vector;
+    name = "vector-client";
     runtimeInputs = [ inputs.nixpkgs.coreutils ];
     runtimeScript = ''
       ${mkShellEnvVars cell.configs.client.vector.envVars}
@@ -87,7 +91,7 @@ in rec {
     package = { name = "mindwm-demo"; };
 #package = inputs.nixpkgs.tmuxinator;
     runtimeInputs = (with nixpkgs; [
-      toybox
+      coreutils procps iproute2 nettools
       less
       netcat-openbsd
       jq yq
@@ -95,12 +99,12 @@ in rec {
       cowsay
       natscli
     ]) ++ (with cell.packages; [
-      mindwm_current_subject
       tmux
       tmuxinator
     ]) ++ [
       nats_client
       vector_client
+      current_subject
     ];
     runtimeShell = nixpkgs.bashInteractive;
     runtimeScript = ''

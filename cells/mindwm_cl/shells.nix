@@ -13,21 +13,15 @@ in
       imports = [ std.devshellProfiles.default ];
       commands =
         [
-          { category = "MindWM";
-            package = cell.apps.runTmuxSession;
-          }
-          {
-            category = "MindWM";
-            package = cell.apps.load_all_images;
-          }
-          {
-            category = "MindWM";
-            package = cell.apps.compose_back;
-          }
-          {
-            category = "MindWM";
-            package = cell.apps.current_subject;
-          }
+          { category = "MindWM"; package = cell.apps.runTmuxSession; }
+          { category = "MindWM"; package = cell.apps.load_all_images; }
+          { category = "MindWM"; package = cell.apps.compose_back; }
+          { category = "MindWM"; package = cell.apps.current_subject; }
+
+          { category = "MindWM"; package = cell.apps.nats_back; }
+          { category = "MindWM"; package = cell.apps.vector_back; }
+          { category = "MindWM"; package = cell.apps.nats_client; }
+          { category = "MindWM"; package = cell.apps.vector_client; }
         ] ++ (
           map (p: { category = "tools"; package = p; }) (with inputs.nixpkgs; [
             tmux
