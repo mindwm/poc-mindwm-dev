@@ -22,14 +22,28 @@ in
           { category = "MindWM"; package = cell.apps.vector_back; }
           { category = "MindWM"; package = cell.apps.nats_client; }
           { category = "MindWM"; package = cell.apps.vector_client; }
+
+          { category = "MindWM"; package = cell.apps.tmux; }
         ] ++ (
           map (p: { category = "tools"; package = p; }) (with inputs.nixpkgs; [
-            tmux
             netcat-openbsd
             natscli
             vim gnused bat jq yq ripgrep fd eza
+            tmux
             (python311.withPackages (ps: with ps; [
               nats-py pyte ipython python-decouple
+              (libtmux.overrideAttrs (f: p: rec {
+                  version = "0.32.0";
+                  src = fetchFromGitHub {
+                    owner = "tmux-python";
+                    repo = p.pname;
+                    rev = "refs/tags/v${version}";
+                    hash = "sha256-8x98yYgA8dY9btFePDTB61gsRZeOVpnErkgJRVlYYFY=";
+                  };
+                  postPatch = ''
+                    sed -i '/addopts/d' pyproject.toml
+                  '';
+              }))
             ]))
           ]));
     };
