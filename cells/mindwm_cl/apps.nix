@@ -71,7 +71,7 @@ in rec {
     runtimeScript = ''
       ${mkShellEnvVars cell.configs.client.vector.envVars}
       export MINDWM_CLIENT_VECTOR_UDP_ADDR="''${MINDWM_CLIENT_VECTOR_UDP_BIND}:''${MINDWM_CLIENT_VECTOR_UDP_PORT}"
-      export MINDWM_CLIENT_NATS_FEEDBACK_ADDR="nats://''${MINDWM_CLIENT_NATS_FEEDBACK_HOST}:''${MINDWM_CLIENT_NATS_FEEDBACK_PORT}"
+      export MINDWM_CLIENT_NATS_ADDR="nats://''${MINDWM_CLIENT_NATS_HOST}:''${MINDWM_CLIENT_NATS_PORT}"
 
       echo "Starting Vector with ''${VECTOR_CONFIG} as config..."
       mkdir -p "$HOME/.local/mindwm/vector"
@@ -98,6 +98,7 @@ in rec {
       bat fd ripgrep eza
       cowsay
       natscli
+      cowsay
     ]) ++ (with cell.packages; [
       tmux
       tmuxinator

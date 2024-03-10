@@ -28,6 +28,9 @@ in
             netcat-openbsd
             natscli
             vim gnused bat jq yq ripgrep fd eza
+            (python311.withPackages (ps: with ps; [
+              nats-py pyte ipython python-decouple
+            ]))
           ]));
     };
   }

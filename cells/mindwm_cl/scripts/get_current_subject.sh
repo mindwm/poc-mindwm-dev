@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [[ "${TMUX:-x}" == "x" ]]; then
-  printf "Must be executed in TMUX environment\n" >&2
+  printf "Must be executed inside TMUX\n" >&2
   exit 1
 elif [[ "${TMUX_PANE:-x}" == "x" ]]; then
   printf "Cannot get TMUX_PANE value\n" >&2
@@ -19,7 +19,7 @@ else
   pane="${MINDWM_TMUX_TARGET_PANE//%/}"
 fi
 
-printf "%s.%s.%s.%s.%s.%s\n" \
+printf "%s.%s.tmux.%s.%s.%s.%s\n" \
   "$(whoami)" \
   "$(hostname)" \
   "$(echo "${socket}" | base64)" \

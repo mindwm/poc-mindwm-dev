@@ -16,33 +16,36 @@ let
       VECTOR_CONFIG = cell.configs.vector_client.configFile;
       MINDWM_CLIENT_VECTOR_UDP_BIND = vector.udp.bind;
       MINDWM_CLIENT_VECTOR_UDP_PORT = (toString vector.udp.port);
-      MINDWM_CLIENT_NATS_FEEDBACK_HOST = nats.feedback.host;
-      MINDWM_CLIENT_NATS_FEEDBACK_PORT = (toString nats.feedback.port);
-      MINDWM_CLIENT_NATS_FEEDBACK_USER = nats.feedback.creds.user;
-      MINDWM_CLIENT_NATS_FEEDBACK_PASS = nats.feedback.creds.pass;
-      MINDWM_CLIENT_NATS_FEEDBACK_SUBJECT = nats.feedback.subject;
+      MINDWM_CLIENT_NATS_HOST = nats.host;
+      MINDWM_CLIENT_NATS_PORT = (toString nats.port);
+      MINDWM_CLIENT_NATS_USER = nats.creds.user;
+      MINDWM_CLIENT_NATS_PASS = nats.creds.pass;
+      MINDWM_CLIENT_NATS_SUBJECT_WORDS_IN = nats.subject.words_in;
+      MINDWM_CLIENT_NATS_SUBJECT_WORDS_OUT = nats.subject.words_out;
       MINDWM_BACK_VECTOR_HOST = backend.vector.host;
       MINDWM_BACK_VECTOR_PORT = (toString backend.vector.port);
+      MINDWM_BACK_NATS_HOST = backend.nats.host;
+      MINDWM_BACK_NATS_PORT = (toString backend.nats.port);
+      MINDWM_BACK_NATS_USER = backend.nats.creds.user;
+      MINDWM_BACK_NATS_PASS = backend.nats.creds.pass;
+      MINDWM_BACK_NATS_SUBJECT_WORDS_IN = backend.nats.subject.words_in;
       MINDWM_CLIENT_SESSION_ID = "localDebugSession";
     };
     nats = {
       bind = "0.0.0.0";
       port = 32040;
       host = "127.0.0.1";
-      subject = "mindwm.sessionID.feedback";
       creds = backend.nats.creds;
+      subject = {
+        words_in = "words_in";
+        words_out = "words_out";
+      };
       envVars = {
         MINDWM_CLIENT_NATS_BIND = nats.bind;
         MINDWM_CLIENT_NATS_PORT = (toString nats.port);
         MINDWM_CLIENT_NATS_ADMIN_USER = nats.creds.user;
         MINDWM_CLIENT_NATS_ADMIN_PASS = nats.creds.pass;
       };
-    };
-    nats.feedback = {
-      host = backend.nats.host;
-      port = backend.nats.port;
-      subject = "clients.sessionID.feedback";
-      creds = backend.nats.creds;
     };
   };
   backend = rec {
@@ -64,7 +67,9 @@ let
       bind = "0.0.0.0";
       port = 32040;
       host = "127.0.0.1";
-      subject = "mindwm.sessionID.feedback";
+      subject = {
+        words_in = "back.words_in";
+      };
       creds = {
         user = "root";
         pass = "r00tpass";
@@ -138,12 +143,7 @@ in rec {
     system_account: SYS
   '';
 
-  vector_client = (dev.mkNixago rec {
-    template = (import ./templates/vector-client.nix) lib;
-    output = "vector-client.toml";
-    data = template {
-    };
-  });
+  vector_client.configFile = inputs.nixpkgs.writeText "vector-client.toml" (builtins.readFile ./vector-client.toml);
 
   tmux.configFile =
     let
