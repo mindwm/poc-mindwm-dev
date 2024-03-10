@@ -91,7 +91,7 @@ in rec {
     package = { name = "mindwm-demo"; };
 #package = inputs.nixpkgs.tmuxinator;
     runtimeInputs = (with nixpkgs; [
-      coreutils procps iproute2 nettools
+      coreutils procps iproute2 nettools which
       less
       netcat-openbsd
       jq yq
