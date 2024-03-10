@@ -2,6 +2,7 @@
 .data/
 .direnv/
 result
+__pycache__/
 
 # nixago: ignore-linked-files
 /compose-back.yaml
