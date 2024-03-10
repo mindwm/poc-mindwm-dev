@@ -12,16 +12,23 @@ decoding.codec = "bytes"
 [transforms.byte_or_chunk]
 type = "route"
 inputs = [ "tmux_udp" ]
-route.one_byte = 'length(to_string!(.message)) == 1'
+route.one_byte = 'length(to_string!(.message)) == 1 || strip_ansi_escape_codes!(.message) == "\n"'
 route.chunk = 'length(to_string!(.message)) > 1'
 
-[transforms.tmux_words]
+[transforms.tmux_words_raw]
 inputs = ["byte_or_chunk.one_byte"]
 type = "reduce"
 ends_when = """
-  .message == " " || .message == "\t" || .message == "\r" || .message == "\n"
+  strip_ansi_escape_codes!(.message) == " "  ||
+  strip_ansi_escape_codes!(.message) == "\t" ||
+  strip_ansi_escape_codes!(.message) == "\n"
 """
 merge_strategies.message = "concat_raw"
+
+[transforms.tmux_words]
+type = "remap"
+inputs = [ "tmux_words_raw" ]
+source = ".message = strip_ansi_escape_codes!(.message)"
 
 [transforms.tmux_chunk]
 inputs = [ "byte_or_chunk.chunk" ]
@@ -40,8 +47,8 @@ source = """
 .knativebrokerttl = "255"
 .specversion = "1.0"
 .type = "word"
-.source = "ping.snpnb"
-.subject = "pion.snpnb.tmux.L3RtcC90bXV4LTEwMDAvZGVmYXVsdAo=.1981756.0.2.words"
+.source = "I don't know what it is"
+.subject = "${MINDWM_BACK_NATS_SUBJECT_WORDS_IN}"
 .datacontenttype = "application/json"
 .data.word = del(.message)
 """
@@ -57,9 +64,14 @@ auth.strategy = "user_password"
 auth.user_password.user = "${MINDWM_BACK_NATS_USER}"
 auth.user_password.password = "${MINDWM_BACK_NATS_PASS}"
 
+[transforms.test]
+type = "remap"
+inputs = ["byte_or_chunk.chunk"]
+source = ".message = strip_ansi_escape_codes!(.message)"
 
 [sinks.debug]
-inputs = ["with_meta"]
-#inputs = [""]
+#inputs = ["with_meta"]
+#inputs = ["test"]
+inputs = ["tmux_words"]
 type = "console"
 encoding.codec = "json"
