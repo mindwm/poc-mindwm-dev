@@ -75,8 +75,16 @@ in rec {
 
       echo "Starting Vector with ''${VECTOR_CONFIG} as config..."
       mkdir -p "$HOME/.local/mindwm/vector"
-      ${package}/bin/vector validate && \
-      exec ${package}/bin/vector "$@"
+
+      function validate_and_run() {
+        ${package}/bin/vector validate && \
+        ${package}/bin/vector "$@"
+      }
+      printf "trying to connect to endpoints."
+      until validate_and_run "$@"; do
+        sleep 1
+        printf "."
+      done
     '';
   };
 
