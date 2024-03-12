@@ -22,7 +22,7 @@ fi
 printf "%s.%s.tmux.%s.%s.%s.%s\n" \
   "$(whoami)" \
   "$(hostname)" \
-  "$(echo "${socket}" | base64)" \
+  "$(printf '%s' "${socket}" | base64 )" \
   "${pid}" \
   "${session}" \
   "${pane}"
