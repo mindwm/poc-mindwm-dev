@@ -44,13 +44,16 @@ source = """
 type = "remap"
 inputs = [ "tmux_words", "tmux_chunk" ]
 source = """
+msg = .message
+del(.)
 .knativebrokerttl = "255"
 .specversion = "1.0"
 .type = "word"
 .source = "I don't know what it is"
 .subject = "${MINDWM_BACK_NATS_SUBJECT_WORDS_IN}"
 .datacontenttype = "application/json"
-.data.word = del(.message)
+.data = {}
+.data.word = msg
 """
 
 # publish to MindWM backend
@@ -70,8 +73,9 @@ inputs = ["byte_or_chunk.chunk"]
 source = ".message = strip_ansi_escape_codes!(.message)"
 
 [sinks.debug]
-#inputs = ["with_meta"]
+inputs = ["with_meta"]
 #inputs = ["test"]
-inputs = ["tmux_words"]
+#inputs = ["tmux_words"]
 type = "console"
 encoding.codec = "json"
+
