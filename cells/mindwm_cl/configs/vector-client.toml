@@ -39,10 +39,20 @@ source = """
   . = filter(words) -> |_i, v| { v != "" }
 """
 
+[transforms.real_words]
+type = "filter"
+inputs = [ "tmux_words", "tmux_chunk" ]
+condition = """
+.message != "\t" &&
+.message != " " &&
+.message != "\r" &&
+.message != "\n"
+"""
+
 # enrich with metadata
 [transforms.with_meta]
 type = "remap"
-inputs = [ "tmux_words", "tmux_chunk" ]
+inputs = [ "real_words" ]
 source = """
 msg = .message
 del(.)
