@@ -6,6 +6,17 @@ let
   inherit (inputs.nixpkgs) lib;
   inherit (inputs.std.lib) dev;
 
+  fileConfig = out_file: input_file: 
+      (dev.mkNixago {
+        output = out_file;
+        data.data = { text = (builtins.readFile input_file); };
+        engine = inputs.nixago.engines.cue {
+          files = [ ./templates/raw_text.cue ];
+          flags = { expression = "rendered"; };
+        };
+        format = "text";
+      });
+
   client = rec {
     vector.udp = {
       bind = "0.0.0.0";
@@ -93,57 +104,9 @@ in rec {
     };
   });
 
-  nats_back.configFile = inputs.nixpkgs.writeText "nats-server.conf" ''
-    listen: $MINDWM_BACK_NATS_LISTEN
-    jetstream {}
-    authorization: {
-      default_permissions = {
-        publish = ">"
-        subscribe = [">", ">"]
-      }
-      users = [
-        { user: user, password: pass }
-      ]
-    }
-
-    accounts: {
-      SYS: {
-        users: [
-          { user: $MINDWM_BACK_NATS_ADMIN_USER,
-            password: $MINDWM_BACK_NATS_ADMIN_PASS }
-        ]
-      }
-    }
-
-    system_account: SYS
-  '';
-
-  nats_client.configFile = inputs.nixpkgs.writeText "nats-client.conf" ''
-    listen: $MINDWM_CLIENT_NATS_LISTEN
-    jetstream {}
-    authorization: {
-      default_permissions = {
-        publish = ">"
-        subscribe = [">", ">"]
-      }
-      users = [
-        { user: user, password: pass }
-      ]
-    }
-
-    accounts: {
-      SYS: {
-        users: [
-          { user: $MINDWM_CLIENT_NATS_ADMIN_USER,
-            password: $MINDWM_CLIENT_NATS_ADMIN_PASS }
-        ]
-      }
-    }
-
-    system_account: SYS
-  '';
-
-  vector_client.configFile = inputs.nixpkgs.writeText "vector-client.toml" (builtins.readFile ./vector-client.toml);
+  nats_back = fileConfig "nats-server.conf" ./nats-server.conf;
+  nats_client = fileConfig "nats-client.conf" ./nats-client.conf;
+  vector_client = fileConfig "vector-client.toml" ./vector-client.toml;
 
   tmux.configFile =
     let
