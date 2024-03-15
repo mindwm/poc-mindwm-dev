@@ -30,6 +30,7 @@ in
             natscli
             vim gnused bat jq yq ripgrep fd eza
             tmux
+            nickel
             (python311.withPackages (ps: with ps; [
               nats-py pyte ipython python-decouple
               (libtmux.overrideAttrs (f: p: rec {
