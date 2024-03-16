@@ -9,61 +9,41 @@ mode = "udp"
 type = "socket"
 decoding.codec = "bytes"
 
-[transforms.byte_or_chunk]
-type = "route"
-inputs = [ "tmux_udp" ]
-route.one_byte = 'length(to_string!(.message)) == 1 || strip_ansi_escape_codes!(.message) == "\n"'
-route.chunk = 'length(to_string!(.message)) > 1'
-
-[transforms.tmux_words_raw]
-inputs = ["byte_or_chunk.one_byte"]
+[transforms.tmux_chunks_raw]
+inputs = ["tmux_udp"]
 type = "reduce"
 ends_when = """
-  strip_ansi_escape_codes!(.message) == " "  ||
-  strip_ansi_escape_codes!(.message) == "\t" ||
-  strip_ansi_escape_codes!(.message) == "\n"
+  ends_with!(.message, " ")  ||
+  ends_with!(.message, "\t") ||
+  ends_with!(.message, "\n")
 """
 merge_strategies.message = "concat_raw"
 
 [transforms.tmux_words]
-type = "remap"
-inputs = [ "tmux_words_raw" ]
-source = ".message = strip_ansi_escape_codes!(.message)"
-
-[transforms.tmux_chunk]
-inputs = [ "byte_or_chunk.chunk" ]
+inputs = [ "tmux_chunks_raw" ]
 type = "remap"
 source = """
   clean = strip_ansi_escape_codes!(.message)
-  words = split(clean, r'[[:space:]]')
+  words = split(clean, r'( +|\\t+)')
   . = filter(words) -> |_i, v| { v != "" }
-"""
-
-[transforms.real_words]
-type = "filter"
-inputs = [ "tmux_words", "tmux_chunk" ]
-condition = """
-.message != "\t" &&
-.message != " " &&
-.message != "\r" &&
-.message != "\n"
 """
 
 # enrich with metadata
 [transforms.with_meta]
 type = "remap"
-inputs = [ "real_words" ]
+inputs = [ "tmux_words" ]
 source = """
 msg = .message
 del(.)
 .knativebrokerttl = "255"
 .specversion = "1.0"
 .type = "word"
-.source = "I don't know what it is"
+.source = "${MINDWM_BACK_NATS_SUBJECT_WORDS_IN}"
 .subject = "${MINDWM_BACK_NATS_SUBJECT_WORDS_IN}"
 .datacontenttype = "application/json"
 .data = {}
 .data.word = msg
+.id = uuid_v4()
 """
 
 # publish to MindWM backend
@@ -76,11 +56,6 @@ encoding.codec = "json"
 auth.strategy = "user_password"
 auth.user_password.user = "${MINDWM_BACK_NATS_USER}"
 auth.user_password.password = "${MINDWM_BACK_NATS_PASS}"
-
-[transforms.test]
-type = "remap"
-inputs = ["byte_or_chunk.chunk"]
-source = ".message = strip_ansi_escape_codes!(.message)"
 
 [sinks.debug]
 inputs = ["with_meta"]
