@@ -20,6 +20,7 @@
     };
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs/23.11";
+  inputs.unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
   inputs = {
 #    std.url = "github:divnix/std";

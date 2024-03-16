@@ -6,6 +6,7 @@
   inherit (inputs.nixpkgs.lib) mapAttrs optionals;
   inherit (inputs.std) std;
   inherit (inputs.std.lib.dev) mkShell;
+  system = inputs.nixpkgs.system;
 in
   mapAttrs (_: mkShell) rec {
     default = {...}: {
@@ -24,13 +25,15 @@ in
           { category = "MindWM"; package = cell.apps.vector_client; }
 
           { category = "MindWM"; package = cell.apps.tmux; }
-        ] ++ (
+        ] ++  map (p: { category = "tools"; package = p; }) (with inputs.unstable.legacyPackages.${system}; [
+            nickel
+        ])
+        ++ (
           map (p: { category = "tools"; package = p; }) (with inputs.nixpkgs; [
             netcat-openbsd
             natscli
             vim gnused bat jq yq ripgrep fd eza
             tmux
-            nickel
             (python311.withPackages (ps: with ps; [
               nats-py pyte ipython python-decouple
               (libtmux.overrideAttrs (f: p: rec {
