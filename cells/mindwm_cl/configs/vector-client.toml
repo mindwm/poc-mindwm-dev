@@ -15,7 +15,8 @@ type = "reduce"
 ends_when = """
   ends_with!(.message, " ")  ||
   ends_with!(.message, "\t") ||
-  ends_with!(.message, "\n")
+  ends_with!(.message, "\n") ||
+  ends_with!(.message, "\r")
 """
 merge_strategies.message = "concat_raw"
 
@@ -27,6 +28,15 @@ source = """
   words = split(clean, r'( +|\\t+)')
   . = filter(words) -> |_i, v| { v != "" }
 """
+
+[transforms.tmux_lines]
+inputs = [ "tmux_words" ]
+type = "reduce"
+ends_when = """
+  ends_with!(.message, "\n") ||
+  ends_with!(.message, "$")
+"""
+merge_strategies.message = "concat"
 
 # enrich with metadata
 [transforms.with_meta]
@@ -58,9 +68,10 @@ auth.user_password.user = "${MINDWM_BACK_NATS_USER}"
 auth.user_password.password = "${MINDWM_BACK_NATS_PASS}"
 
 [sinks.debug]
-inputs = ["with_meta"]
+#inputs = ["with_meta"]
 #inputs = ["test"]
-#inputs = ["tmux_words"]
+#inputs = ["tmux_lines", "tmux_udp"]
+inputs = ["tmux_lines"]
 type = "console"
-encoding.codec = "json"
-
+#encoding.codec = "json"
+encoding.codec = "text"
