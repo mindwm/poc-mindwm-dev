@@ -12,6 +12,7 @@ in
   nats = nixpkgs.nats-server;
   tmux = nixpkgs.tmux;
   tmuxinator = nixpkgs.tmuxinator;
+  asciinema = nixpkgs.asciinema;
 
   mindwm_current_subject = nixpkgs.stdenv.mkDerivation rec {
       pname = "current-subject";

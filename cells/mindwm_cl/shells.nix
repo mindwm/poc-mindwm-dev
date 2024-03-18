@@ -24,9 +24,12 @@ in
           { category = "MindWM"; package = cell.apps.nats_client; }
           { category = "MindWM"; package = cell.apps.vector_client; }
 
+          { category = "MindWM"; package = cell.apps.asciinema; }
+
           { category = "MindWM"; package = cell.apps.tmux; }
         ] ++  map (p: { category = "tools"; package = p; }) (with inputs.unstable.legacyPackages.${system}; [
             nickel
+            asciinema
         ])
         ++ (
           map (p: { category = "tools"; package = p; }) (with inputs.nixpkgs; [

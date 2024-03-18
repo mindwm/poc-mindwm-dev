@@ -153,4 +153,9 @@ in rec {
 #    package = { name = "current-subject"; };
 #    runtimeScript = (builtins.readFile ./scripts/get_current_subject.sh);
   };
+
+  asciinema = mkOperable rec {
+    package = cell.packages.asciinema;
+    runtimeScript = ''${package}/bin/asciinema rec --stdin --append "''${MINDWM_ASCIINEMA_REC_PIPE}"'';
+  };
 }
