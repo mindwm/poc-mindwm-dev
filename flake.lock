@@ -354,7 +354,7 @@
         "flake-utils": "flake-utils_3",
         "nickel_src": "nickel_src",
         "nixpkgs": [
-          "nixpkgs"
+          "unstable"
         ]
       },
       "locked": {
