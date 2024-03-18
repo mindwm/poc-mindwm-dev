@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import asyncio
+import json
+from pprint import pprint
 from decouple import config
 from cleaner import Sanitizer
 from listener import NATS_listener
 from tmux import Tmux_manager
 from pipe_listener import PipeListener
+from text_processor import TextProcessor
 
-
-async def cb_print(payload):
-    print(payload)
 
 async def main():
     print(f"MindWM Manager")
@@ -33,7 +33,20 @@ async def main():
 #    # TODO: need to validate MINDWM_TMUX value and describe what's wrong
 #    tmux_socket = env['MINDWM_TMUX'].split(',')[0]
 
+    text_processor = TextProcessor()
+    await text_processor.init()
+
+    async def cb_print(payload):
+        data = json.loads(payload)
+        try:
+            res = await text_processor.parse(cmd=data['input'], output=data['output'])
+        except NotImplementedError:
+            res = payload
+
+        pprint(res, width=200)
+
     pipe_listener = PipeListener('/home/pion/work/dev/mindwm-playground/langchain/my_pipe', cb=cb_print)
+
     await pipe_listener.init()
     await pipe_listener.loop()
 

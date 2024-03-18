@@ -40,6 +40,8 @@ in
             tmux
             (unstable.python311.withPackages (ps: with ps; [
               nats-py pyte ipython python-decouple aiofiles
+              # formal text processing
+              textfsm
               # AI stuff
               langchain
 
