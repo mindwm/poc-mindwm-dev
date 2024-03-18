@@ -28,8 +28,10 @@ in
           { category = "MindWM"; package = cell.apps.asciinema; }
 
           { category = "MindWM"; package = cell.apps.tmux; }
+          { category = "MindWM"; package = inputs.organist.packages.${system}.nickel; }
         ] ++  map (p: { category = "tools"; package = p; }) (with unstable; [
-            nickel
+            # NOTE: this nickel package conflicts with organist
+            # nickel
             asciinema
         ])
         ++ (
