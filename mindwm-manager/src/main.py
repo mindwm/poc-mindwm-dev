@@ -74,7 +74,7 @@ async def main():
 
         if len(inp) > 3 and not inp.startswith('#'):
             # try to expand short commands to it full form
-            full_cmd = await ai_processor.cmd_short_to_full(data['input'])
+            full_cmd = await ai_processor.cmd_short_to_full(data['input'].strip())
 
         #if inp:
         #    summary = await ai_processor.summarize(data['input'], data['output'])
