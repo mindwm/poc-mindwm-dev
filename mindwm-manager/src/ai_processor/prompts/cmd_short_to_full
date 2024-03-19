@@ -8,6 +8,7 @@ Examples:
 `ip a sh` is `ip address show`
 `ip r` is `ip route`
 `ip ru` is `ip rule`
+`ifconfig` is `ifconfig`
 `ifconfig eth0` is `ifconfig eth0`
 `uptime` is `uptime`
 
