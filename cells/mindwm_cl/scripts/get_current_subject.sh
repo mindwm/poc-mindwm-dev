@@ -11,7 +11,6 @@ elif [[ "${TMUX_PANE:-x}" == "x" ]]; then
 fi
 
 socket=$(echo "${TMUX}" | cut -d',' -f1)
-pid=$(echo "${TMUX}" | cut -d',' -f2)
 session=$(echo "${TMUX}" | cut -d',' -f3)
 if [[ "${MINDWM_TMUX_TARGET_PANE:-x}" == "x" ]]; then
   pane="${TMUX_PANE//%/}"
@@ -19,11 +18,11 @@ else
   pane="${MINDWM_TMUX_TARGET_PANE//%/}"
 fi
 
-printf "%s.%s.tmux.%s.%s.%s.%s\n" \
+printf "mindwm.%s.%s.tmux.%s.%s.%s.%s\n" \
   "$(whoami)" \
   "$(hostname)" \
   "$(printf '%s' "${socket}" | base64 )" \
-  "${pid}" \
+  "${MINDWM_SESSION_ID}" \
   "${session}" \
   "${pane}"
 
