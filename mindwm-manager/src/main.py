@@ -34,6 +34,8 @@ async def main():
             "MINDWM_BACK_NATS_USER": config("MINDWM_BACK_NATS_USER", default="root"),
             "MINDWM_BACK_NATS_PASS": config("MINDWM_BACK_NATS_PASS", default="r00tpass"),
             "MINDWM_BACK_NATS_SUBJECT_PREFIX": config("MINDWM_BACK_NATS_SUBJECT_PREFIX"),
+
+            "MINDWM_ASCIINEMA_REC_PIPE": config("MINDWM_ASCIINEMA_REC_PIPE"),
             }
 #
 #    # TODO: need to validate MINDWM_TMUX value and describe what's wrong
@@ -94,7 +96,8 @@ async def main():
         #print(f"type: {type(res)}")
         print(f"result: {result}")
 
-    pipe_listener = PipeListener('/home/pion/work/dev/mindwm-playground/langchain/my_pipe', cb=cb_print, cb_word=nats_pub_word, cb_line=nats_pub_line)
+    print(f"pipe_path: {env['MINDWM_ASCIINEMA_REC_PIPE']}")
+    pipe_listener = PipeListener(env['MINDWM_ASCIINEMA_REC_PIPE'], cb=cb_print, cb_word=nats_pub_word, cb_line=nats_pub_line)
 
     await pipe_listener.init()
     await pipe_listener.loop()
