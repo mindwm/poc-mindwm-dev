@@ -70,25 +70,25 @@ async def main():
         data = json.loads(payload)
         inp = data['input']
         full_cmd = inp
-        summary = None
+        #summary = None
 
-        if len(inp) > 3:
+        if len(inp) > 3 and not inp.startswith('#'):
             # try to expand short commands to it full form
             full_cmd = await ai_processor.cmd_short_to_full(data['input'])
 
-        if inp:
-            summary = await ai_processor.summarize(data['input'], data['output'])
-            await nats_pub_summary(summary)
+        #if inp:
+        #    summary = await ai_processor.summarize(data['input'], data['output'])
+        #    await nats_pub_summary(summary)
 
+        result = json.loads(payload)
         try:
             res_ = await text_processor.parse(cmd=full_cmd, output=data['output'])
-            res = payload['json']
+            result['textfsm'] = json.loads(res_)
         except NotImplementedError:
-            res = payload
+            pass
 
-        result = json.loads(res)
         result['full_cmd'] = full_cmd
-        result['summary'] = summary
+        #result['summary'] = summary
         #pprint(res, width=200)
         #print(f"full_cmd: {full_cmd}")
         #print(f"type: {type(res)}")
