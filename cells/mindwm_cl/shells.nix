@@ -43,9 +43,9 @@ in
             (unstable.python311.withPackages (ps: with ps; [
               nats-py pyte ipython python-decouple aiofiles
               # formal text processing
-              textfsm
+              textfsm tabulate
               # AI stuff
-              langchain
+              langchain openai
 
               (libtmux.overrideAttrs (f: p: rec {
                   version = "0.32.0";
