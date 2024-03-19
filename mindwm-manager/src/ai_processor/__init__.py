@@ -11,6 +11,7 @@ class AiProcessor:
     prompts = {
         "cmd_short_to_full": "./prompts/cmd_short_to_full",
         "summarize_output": "./prompts/summarize_output",
+        "query": "./prompts/query",
     }
     def __init__(self, config):
         self.openai_api_key = config["OPENAI_API_KEY"]
@@ -37,6 +38,13 @@ class AiProcessor:
     async def summarize(self, cmd, output):
         prompt_ = await self.load_template('summarize_output')
         prompt = prompt_.replace("%%INPUT%%", cmd).replace("%%OUTPUT%%", output)
+        print(f"prompt: {prompt}")
+        answer = await self.ask_ai(prompt)
+        return answer
+
+    async def query(self, query):
+        prompt_ = await self.load_template('query')
+        prompt = prompt_.replace("%%QUERY%%", query)
         print(f"prompt: {prompt}")
         answer = await self.ask_ai(prompt)
         return answer

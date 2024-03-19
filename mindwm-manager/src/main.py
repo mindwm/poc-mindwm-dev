@@ -67,6 +67,7 @@ async def main():
     nats_pub_word = partial(nats_pub, "words", "word")
     nats_pub_line = partial(nats_pub, "lines", "line")
     nats_pub_summary = partial(nats_pub, "summary", "summary")
+    nats_pub_ai_answer = partial(nats_pub, "ai_answer", "ai_answer")
 
     async def cb_print(payload):
         data = json.loads(payload)
@@ -78,9 +79,10 @@ async def main():
             # try to expand short commands to it full form
             full_cmd = await ai_processor.cmd_short_to_full(data['input'].strip())
 
-        #if inp:
-        #    summary = await ai_processor.summarize(data['input'], data['output'])
-        #    await nats_pub_summary(summary)
+        # send message to ai
+        if inp.startswith('#mw'):
+            answer = await ai_processor.query(data['input'][3:])
+            await nats_pub_ai_answer(answer)
 
         result = json.loads(payload)
         try:
