@@ -49,7 +49,7 @@ class AiProcessor:
             "max_context_length": 1600,
             "max_length": 512,
             "rep_pen": 1.1,
-            "temperature": 0.7,
+            "temperature": 0.4,
             "top_p": 0.92,
             "top_k": 100,
             "top_a": 0,
