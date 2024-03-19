@@ -44,11 +44,13 @@ async def main():
     async def cb_print(payload):
         data = json.loads(payload)
         inp = data['input']
-        if len(inp) > 2:
+        full_cmd = inp
+
+        if len(inp) > 3:
             # try to expand short commands to it full form
             full_cmd = await ai_processor.cmd_short_to_full(data['input'])
-        else:
-            full_cmd = inp
+
+        summary = await ai_processor.summarize(data['input'], data['output'])
 
         try:
             res_ = await text_processor.parse(cmd=full_cmd, output=data['output'])
@@ -58,6 +60,7 @@ async def main():
 
         result = json.loads(res)
         result['full_cmd'] = full_cmd
+        result['summary'] = summary
         #pprint(res, width=200)
         #print(f"full_cmd: {full_cmd}")
         #print(f"type: {type(res)}")

@@ -5,10 +5,12 @@ from decouple import config
 import os
 import requests
 import sys
+import json
 
 class AiProcessor:
     prompts = {
-        "cmd_short_to_full": "./prompts/cmd_short_to_full"
+        "cmd_short_to_full": "./prompts/cmd_short_to_full",
+        "summarize_output": "./prompts/summarize_output",
     }
     def __init__(self, config):
         self.openai_api_key = config["OPENAI_API_KEY"]
@@ -18,14 +20,25 @@ class AiProcessor:
     async def init(self):
         pass
 
-    async def cmd_short_to_full(self, cmd):
-        prompt_path = self.path + '/' + self.prompts['cmd_short_to_full']
+    async def load_template(self, name):
+        prompt_path = self.path + '/' + self.prompts[name]
         async with aiofiles.open(prompt_path, mode='rt') as f:
             prompt_ = await f.read()
-            prompt = prompt_.replace("%%USER%%", cmd)
-            #print(f"prompt: {prompt}")
-            answer = await self.ask_ai(prompt)
 
+        return prompt_
+
+    async def cmd_short_to_full(self, cmd):
+        prompt_ = await self.load_template('cmd_short_to_full')
+        prompt = prompt_.replace("%%USER%%", cmd)
+        #print(f"prompt: {prompt}")
+        answer = await self.ask_ai(prompt)
+        return answer
+
+    async def summarize(self, cmd, output):
+        prompt_ = await self.load_template('summarize_output')
+        prompt = prompt_.replace("%%INPUT%%", cmd).replace("%%OUTPUT%%", output)
+        print(f"prompt: {prompt}")
+        answer = await self.ask_ai(prompt)
         return answer
 
     async def ask_ai(self, prompt):
@@ -46,7 +59,7 @@ class AiProcessor:
             "rep_pen_slope": 0.7,
             "sampler_order": [6, 0, 1, 3, 4, 2, 5],
             "memory": "",
-            "genkey": "KCPP9898",
+#            "genkey": "KCPP9898",
             "min_p": 0,
             "dynatemp_range": 0,
             "dynatemp_exponent": 1,
@@ -54,9 +67,9 @@ class AiProcessor:
             "presence_penalty": 0,
             "logit_bias": {},
             "prompt": prompt,
-            "quiet": "true",
+            "quiet": False,
             "stop_sequence": ["### Instruction:", "### Response:"],
-            "use_default_badwordsids": "false"
+            "use_default_badwordsids": False
         }
         data = {
             "model": "chatgpt-3.5-turbo",
@@ -68,10 +81,13 @@ class AiProcessor:
             "presence_penalty": 0.0
         }
     
-        response = requests.post(f"{self.openai_api_base}/completions", json=kobold_data, headers=headers)
+        #response = requests.post(f"{self.openai_api_base}/completions", json=data, headers=headers)
+        #response = requests.post(f"{self.openai_api_base}/generate", json=json.dumps(kobold_data), headers=headers)
+        response = requests.post(f"{self.openai_api_base}/generate", json=kobold_data, headers=headers)
     
-        #print(f"rest: {response.json()}")
-        return response.json()["choices"][0]["text"].strip()
+        #print(f"rest: {response.json()}\n\n\n")
+        #return response.json()["choices"][0]["text"].strip()
+        return response.json()["results"][0]["text"].strip()
 
 #
 # Example usage:
