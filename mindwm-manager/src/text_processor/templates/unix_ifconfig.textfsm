@@ -1,6 +1,6 @@
 Value Required Interface ([^:]+)
 Value MTU (\d+)
-Value State ((in)?active)
+Value State ((UP|DOWN))
 Value MAC ([\d\w:]+)
 Value List Inet ([\d\.]+)
 Value List Netmask (\S+)
@@ -12,7 +12,7 @@ Start
   # Record interface record (if we have one).
   ^\S*:.* -> Continue.Record
   # Collect data for new interface.
-  ^${Interface}:.* mtu ${MTU}
+  ^${Interface}:\s+flags=\d+<${State},.* mtu ${MTU}
   ^\s*ether ${MAC}
   ^\s*inet ${Inet}\s+netmask ${Netmask}
   ^\s*inet6 ${Inet6}\s+prefixlen ${Prefix}

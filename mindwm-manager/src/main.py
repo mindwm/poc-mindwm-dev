@@ -8,11 +8,14 @@ from listener import NATS_listener
 from tmux import Tmux_manager
 from pipe_listener import PipeListener
 from text_processor import TextProcessor
+from ai_processor import AiProcessor
 
 
 async def main():
-    print(f"MindWM Manager")
-#    env = {
+#    print(f"MindWM Manager")
+    env = {
+        "OPENAI_API_KEY": config("OPENAI_API_KEY"),
+        "OPENAI_API_BASE": config("OPENAI_API_BASE"),
 #            "MINDWM_VECTOR_UDP_HOST": config("MINDWM_CLIENT_VECTOR_UDP_HOST", default="127.0.0.1"),
 #            "MINDWM_VECTOR_UDP_PORT": config("MINDWM_CLIENT_VECTOR_UDP_PORT"),
 #            "MINDWM_NATS_HOST": config("MINDWM_CLIENT_NATS_HOST", default="127.0.0.1"),
@@ -28,22 +31,37 @@ async def main():
 #            "MINDWM_BACK_NATS_USER": config("MINDWM_BACK_NATS_USER", default="root"),
 #            "MINDWM_BACK_NATS_PASS": config("MINDWM_BACK_NATS_PASS", default="r00tpass"),
 #            "MINDWM_BACK_NATS_SUBJECT_WORDS_IN": config("MINDWM_BACK_NATS_SUBJECT_WORDS_IN"),
-#            }
+            }
 #
 #    # TODO: need to validate MINDWM_TMUX value and describe what's wrong
 #    tmux_socket = env['MINDWM_TMUX'].split(',')[0]
 
     text_processor = TextProcessor()
+    ai_processor = AiProcessor(env)
     await text_processor.init()
+    await ai_processor.init()
 
     async def cb_print(payload):
         data = json.loads(payload)
+        inp = data['input']
+        if len(inp) > 2:
+            # try to expand short commands to it full form
+            full_cmd = await ai_processor.cmd_short_to_full(data['input'])
+        else:
+            full_cmd = inp
+
         try:
-            res = await text_processor.parse(cmd=data['input'], output=data['output'])
+            res_ = await text_processor.parse(cmd=full_cmd, output=data['output'])
+            res = payload['json']
         except NotImplementedError:
             res = payload
 
-        pprint(res, width=200)
+        result = json.loads(res)
+        result['full_cmd'] = full_cmd
+        #pprint(res, width=200)
+        #print(f"full_cmd: {full_cmd}")
+        #print(f"type: {type(res)}")
+        print(f"result: {result}")
 
     pipe_listener = PipeListener('/home/pion/work/dev/mindwm-playground/langchain/my_pipe', cb=cb_print)
 
