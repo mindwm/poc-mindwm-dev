@@ -17,8 +17,8 @@ from text_processor import TextProcessor
 async def main():
 #    print(f"MindWM Manager")
     env = {
-        "OPENAI_API_KEY": config("OPENAI_API_KEY"),
-        "OPENAI_API_BASE": config("OPENAI_API_BASE"),
+        #"OPENAI_API_KEY": config("OPENAI_API_KEY"),
+        #"OPENAI_API_BASE": config("OPENAI_API_BASE"),
 #            "MINDWM_VECTOR_UDP_HOST": config("MINDWM_CLIENT_VECTOR_UDP_HOST", default="127.0.0.1"),
 #            "MINDWM_VECTOR_UDP_PORT": config("MINDWM_CLIENT_VECTOR_UDP_PORT"),
 #            "MINDWM_NATS_HOST": config("MINDWM_CLIENT_NATS_HOST", default="127.0.0.1"),
