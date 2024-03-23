@@ -80,7 +80,7 @@ class PipeListener:
        
                 if d == 'o' and user_input:
                     if chunk_raw in [' ', '\t', '\r', '\n']:
-                        if word_buf:
+                        if word_buf and self.cb_word:
                             await self.cb_word(word_buf)
                             word_buf = ""
                     else:
@@ -103,7 +103,7 @@ class PipeListener:
                     pprint("user command canceled")
                 elif d == 'i' and chunk_raw == '\r':
                     if self.cb_line:
-                        if word_buf:
+                        if word_buf and self.cb_word:
                             await self.cb_word(word_buf)
                             word_buf = ""
 

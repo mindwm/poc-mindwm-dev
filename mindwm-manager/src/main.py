@@ -11,7 +11,7 @@ from listener import NATS_listener
 from tmux import Tmux_manager
 from pipe_listener import PipeListener
 from text_processor import TextProcessor
-from ai_processor import AiProcessor
+#from ai_processor import AiProcessor
 
 
 async def main():
@@ -44,9 +44,9 @@ async def main():
     nc = await nats.connect(nats_url)
 
     text_processor = TextProcessor()
-    ai_processor = AiProcessor(env)
+    #ai_processor = AiProcessor(env)
     await text_processor.init()
-    await ai_processor.init()
+    #await ai_processor.init()
 
     async def nats_pub(topic, t, msg):
         subject = f"{env['MINDWM_BACK_NATS_SUBJECT_PREFIX']}.{topic}"
@@ -67,6 +67,7 @@ async def main():
     nats_pub_word = partial(nats_pub, "words", "word")
     nats_pub_line = partial(nats_pub, "lines", "line")
     nats_pub_summary = partial(nats_pub, "summary", "summary")
+    nats_pub_iodoc = partial(nats_pub, "iodocument", "iodocument")
     nats_pub_ai_answer = partial(nats_pub, "ai_answer", "ai_answer")
 
     async def cb_print(payload):
@@ -77,11 +78,13 @@ async def main():
 
         if len(inp) > 3 and not inp.startswith('#'):
             # try to expand short commands to it full form
-            full_cmd = await ai_processor.cmd_short_to_full(data['input'].strip())
+            # TODO: disabled temporary
+            full_cmd = inp #await ai_processor.cmd_short_to_full(data['input'].strip())
 
         # send message to ai
         if inp.startswith('#mw'):
             answer = await ai_processor.query(data['input'][3:])
+            print(f"answer: {answer}")
             await nats_pub_ai_answer(answer)
 
         result = json.loads(payload)
@@ -96,10 +99,12 @@ async def main():
         #pprint(res, width=200)
         #print(f"full_cmd: {full_cmd}")
         #print(f"type: {type(res)}")
+        await nats_pub_iodoc(result)
         print(f"result: {result}")
 
     print(f"pipe_path: {env['MINDWM_ASCIINEMA_REC_PIPE']}")
-    pipe_listener = PipeListener(env['MINDWM_ASCIINEMA_REC_PIPE'], cb=cb_print, cb_word=nats_pub_word, cb_line=nats_pub_line)
+    #pipe_listener = PipeListener(env['MINDWM_ASCIINEMA_REC_PIPE'], cb=cb_print, cb_word=nats_pub_word, cb_line=nats_pub_line)
+    pipe_listener = PipeListener(env['MINDWM_ASCIINEMA_REC_PIPE'], cb=cb_print, cb_line=nats_pub_line)
 
     await pipe_listener.init()
     await pipe_listener.loop()
