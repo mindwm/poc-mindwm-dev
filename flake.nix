@@ -21,6 +21,13 @@
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs/23.11";
   inputs.unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+  inputs.argocd = {
+     type = "github";
+     owner = "argoproj";
+     repo = "argo-cd";
+     dir = "manifests/crds";
+     flake = false;
+  };
 
   inputs = {
 #    std.url = "github:divnix/std";

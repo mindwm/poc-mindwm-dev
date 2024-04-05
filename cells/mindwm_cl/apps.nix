@@ -95,6 +95,12 @@ in rec {
     '';
   };
 
+  testOp = mkOperable {
+    package.name = "testOp";
+    runtimeScript = ''
+      ls -la ${inputs.argocd};
+    '';
+  };
   runTmuxSession = mkOperable rec {
     package = { name = "mindwm-demo"; };
 #package = inputs.nixpkgs.tmuxinator;

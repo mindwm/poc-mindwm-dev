@@ -15,6 +15,7 @@ in
       imports = [ std.devshellProfiles.default ];
       commands =
         [
+          { category = "MindWM"; package = cell.apps.testOp; }
           { category = "MindWM"; package = cell.apps.runTmuxSession; }
           { category = "MindWM"; package = cell.apps.load_all_images; }
           { category = "MindWM"; package = cell.apps.compose_back; }
