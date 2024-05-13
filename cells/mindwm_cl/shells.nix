@@ -29,6 +29,8 @@ in
 
           { category = "MindWM"; package = cell.apps.tmux; }
           { category = "MindWM"; package = inputs.organist.packages.${system}.nickel; }
+
+          { category = "CI/CD"; package = cell.apps.github_runner; }
         ] ++  map (p: { category = "tools"; package = p; }) (with unstable; [
             # NOTE: this nickel package conflicts with organist
             # nickel
