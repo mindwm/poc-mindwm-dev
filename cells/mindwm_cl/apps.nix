@@ -108,8 +108,9 @@ in rec {
       jq yq
       bat fd ripgrep eza
       cowsay
-      natscli
       cowsay
+    ]) ++ (with unstable; [
+      natscli
     ]) ++ (with cell.packages; [
       tmux
       tmuxinator
