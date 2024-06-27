@@ -33,4 +33,11 @@ in {
     tag = "latest";
     inherit (operable) meta;
   };
+
+  github_runner = std.lib.ops.mkStandardOCI rec {
+    operable = cell.apps.github_runner;
+    name = "mindwm/github-runner";
+    tag = "latest";
+    inherit (operable) meta;
+  };
 }

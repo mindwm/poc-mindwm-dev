@@ -35,6 +35,8 @@
     n2c.inputs.nixpkgs.follows = "nixpkgs";
     makes.url = "github:fluidattacks/makes";
     makes.inputs.nixpkgs.follows = "std/nixpkgs";
+    organist.url = "github:nickel-lang/organist";
+    organist.inputs.nixpkgs.follows = "unstable";
     nixago.url = "github:nix-community/nixago";
     nixago.inputs.nixpkgs.follows = "nixpkgs";
     nixago.inputs.nixago-exts.follows = "";

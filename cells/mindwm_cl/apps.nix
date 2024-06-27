@@ -8,6 +8,9 @@
 
   l = nixpkgs.lib // builtins;
 
+  system = inputs.nixpkgs.system;
+  unstable = inputs.unstable.legacyPackages.${system};
+
   backend.config = {
     nats = configs.nats_back.configFile;
     vector = configs.vector_back.configFile;
@@ -105,8 +108,9 @@ in rec {
       jq yq
       bat fd ripgrep eza
       cowsay
-      natscli
       cowsay
+    ]) ++ (with unstable; [
+      natscli
     ]) ++ (with cell.packages; [
       tmux
       tmuxinator
@@ -157,5 +161,19 @@ in rec {
   asciinema = mkOperable rec {
     package = cell.packages.asciinema;
     runtimeScript = ''${package}/bin/asciinema rec --stdin --append "''${MINDWM_ASCIINEMA_REC_PIPE}"'';
+  };
+
+  github_runner = mkOperable rec {
+    package = unstable.github-runner;
+    runtimeScript = ''
+      exec ${package}/bin/Runner.Listener "$@"
+    '';
+    runtimeInputs = (with nixpkgs; [
+      coreutils procps iproute2 nettools iputils which less
+      bashInteractive gnugrep curl
+      gnumake gitMinimal gnutar gzip gnused
+    ]) ++ (with unstable; [
+      kubernetes-helm argocd
+    ]);
   };
 }
