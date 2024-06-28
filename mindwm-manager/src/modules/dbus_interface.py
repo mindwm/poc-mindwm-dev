@@ -80,6 +80,12 @@ class Subprocess():
         if self._proc:
             self._proc.terminate()
 
+    async def send_stdio(self, string):
+        if self._proc:
+            s = string + '\n'
+            print(f"send to stdio: {s}")
+            self._proc.stdin.write(s.encode())
+
 
 class SpawnedCommand():
     def __init__(self, cmd, uid, subprocess):
@@ -94,6 +100,13 @@ class ManagerInterface(ServiceInterface):
         self._string_prop = 'kevin'
         self._spawned_commands = []
         self._loop = asyncio.get_event_loop()
+
+    def findByUid(self, uid):
+        for p in self._spawned_commands:
+            if p._uid == uid:
+                return p
+
+        return None
 
     @signal()
     def callback_signal(self, uid, output, label) -> 'ss':
@@ -121,11 +134,10 @@ class ManagerInterface(ServiceInterface):
 
     @method()
     async def Kill(self, uid: 's'):
-        for p in self._spawned_commands:
-            if p._uid == uid:
-                await p._subp.terminate()
-                self._spawned_commands.remove(p)
-                return
+        p = self.findByUid(uid)
+        if p:
+            await p._subp.terminate()
+            self._spawned_commands.remove(p)
 
     @method()
     async def ListSpawned(self) -> 'a(ss)':
@@ -134,6 +146,12 @@ class ManagerInterface(ServiceInterface):
             res.append([p._uid, p._cmd])
 
         return res
+
+    @method()
+    async def SendStdin(self, uid: 's', string: 's'):
+        p = self.findByUid(uid)
+        if p:
+            await p._subp.send_stdio(string)
 
     @method()
     def Echo(self, what: 's') -> 's':
