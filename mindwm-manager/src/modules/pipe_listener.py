@@ -41,7 +41,10 @@ class PipeListener:
                 if not l:
                     break
 
-                _t, d, chunk_raw = json.loads(l)
+                try:
+                    _t, d, chunk_raw = json.loads(l)
+                except Exception as e:
+                    print(f"cannot parse {l} as json")
        
                 lines_raw = chunk_raw.split('\r\n')
                 try:
@@ -58,7 +61,7 @@ class PipeListener:
                 last_line = (lines[-1:][0]).strip()
                 #pprint(last_line, width=200)
        
-                if d == 'o' and (last_line.endswith("$") or last_line.endswith("❯")):
+                if d == 'o' and (last_line.endswith("$") or last_line.endswith("❯") or last_line.endswith("➜")):
                     input_final = self.sanitize(cmd_line).strip()
                     if self.cb_word:
                         await self.cb_word(last_line)

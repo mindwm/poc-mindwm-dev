@@ -11,6 +11,7 @@ from modules.nats_listener import NATS_listener
 from modules.tmux_manager import Tmux_manager
 from modules.pipe_listener import PipeListener
 from modules.text_processor import TextProcessor
+from modules.dbus_interface import DbusInterface
 
 
 async def main():
@@ -29,10 +30,15 @@ async def main():
     nats_url = f"nats://{env['MINDWM_BACK_NATS_USER']}:{env['MINDWM_BACK_NATS_PASS']}@{env['MINDWM_BACK_NATS_HOST']}:{env['MINDWM_BACK_NATS_PORT']}"
     nc = await nats.connect(nats_url)
 
+    loop = asyncio.get_event_loop()
+
     text_processor = TextProcessor()
     #ai_processor = AiProcessor(env)
     await text_processor.init()
     #await ai_processor.init()
+
+    dbus_interface = DbusInterface()
+    loop.create_task(dbus_interface.init())
 
     async def nats_pub(topic, t, msg):
         subject = f"{env['MINDWM_BACK_NATS_SUBJECT_PREFIX']}.{topic}"

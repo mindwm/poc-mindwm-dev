@@ -109,7 +109,6 @@ class ManagerInterface(ServiceInterface):
 
     @dbus_property(name='StringProp')
     def string_prop(self) -> 's':
-        print("string prop")
         return self._string_prop
 
     @string_prop.setter
@@ -125,6 +124,22 @@ class ManagerInterface(ServiceInterface):
         return ['hello', 'world']
 
 
+class DbusInterface():
+    def __init__(self):
+        pass
+
+    async def init(self):
+        self.name = 'org.mindwm'
+        self.path = '/manager'
+        self.interface_name = 'mindwm.client'
+    
+        bus = await MessageBus(bus_type = BusType.SESSION).connect()
+        self.interface = ManagerInterface(self.interface_name)
+        bus.export(self.path, self.interface)
+        await bus.request_name(self.name)
+        print(f'service up on name: "{self.name}", path: "{self.path}", interface: "{self.interface_name}"')
+        await bus.wait_for_disconnect()
+
 async def main():
     name = 'org.mindwm'
     path = '/manager'
@@ -137,5 +152,5 @@ async def main():
     print(f'service up on name: "{name}", path: "{path}", interface: "{interface_name}"')
     await bus.wait_for_disconnect()
 
-
-asyncio.get_event_loop().run_until_complete(main())
+if __name__ == "__main__":
+    asyncio.get_event_loop().run_until_complete(main())
