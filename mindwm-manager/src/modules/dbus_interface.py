@@ -128,6 +128,14 @@ class ManagerInterface(ServiceInterface):
                 return
 
     @method()
+    async def ListSpawned(self) -> 'a(ss)':
+        res = []
+        for p in self._spawned_commands:
+            res.append([p._uid, p._cmd])
+
+        return res
+
+    @method()
     def Echo(self, what: 's') -> 's':
         print(f"echo: {what}")
         return what
