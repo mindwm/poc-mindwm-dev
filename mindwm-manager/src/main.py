@@ -7,7 +7,7 @@ from uuid import uuid4
 from pprint import pprint
 from decouple import config
 
-from modules.nats_listener import NATS_listener
+from modules.nats_listener import NatsListener
 from modules.tmux_manager import Tmux_manager
 from modules.pipe_listener import PipeListener
 from modules.text_processor import TextProcessor
@@ -39,6 +39,15 @@ async def main():
 
     dbus_interface = DbusInterface()
     loop.create_task(dbus_interface.init())
+
+    async def nats_message_callback(msg):
+        print(f"Nats feedback received: {msg}")
+        await dbus_interface.feedback_message(json.dumps(msg))
+
+    nats_feedback_topic = "{}.feedback".format(env['MINDWM_BACK_NATS_SUBJECT_PREFIX'])
+    nats_listener = NatsListener(nats_url, nats_feedback_topic, message_callback=nats_message_callback)
+    loop.create_task(nats_listener.init())
+
 
     async def nats_pub(topic, t, msg):
         subject = f"{env['MINDWM_BACK_NATS_SUBJECT_PREFIX']}.{topic}"

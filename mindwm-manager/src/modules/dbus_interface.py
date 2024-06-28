@@ -186,8 +186,8 @@ class ManagerInterface(ServiceInterface):
         self._string_prop = val
 
     @signal()
-    def signal_simple(self) -> 's':
-        return 'hello'
+    def feedback_message(self, msg: 's') -> 's':
+        return msg
 
     @signal()
     def signal_multiple(self) -> 'ss':
@@ -209,6 +209,10 @@ class DbusInterface():
         await bus.request_name(self.name)
         print(f'service up on name: "{self.name}", path: "{self.path}", interface: "{self.interface_name}"')
         await bus.wait_for_disconnect()
+
+    async def feedback_message(self, msg):
+        if self.interface:
+            self.interface.feedback_message(msg)
 
 async def main():
     name = 'org.mindwm'
