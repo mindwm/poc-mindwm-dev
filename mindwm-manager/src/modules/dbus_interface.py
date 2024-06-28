@@ -48,12 +48,13 @@ class MyProtocol(asyncio.subprocess.SubprocessStreamProtocol):
                 self._reader.feed_eof()
 
 class Subprocess():
-    def __init__(self, cmd, callback, uid):
+    def __init__(self, cmd, callback, uid, terminate_callback):
         self._loop = asyncio.get_event_loop()
         self._cmd = cmd.split()
         self._callback = callback
         self._uid = uid
         self._proc = None
+        self._terminate_callback = terminate_callback
 
     async def start(self):
         self._reader = asyncio.StreamReader(loop=self._loop)
@@ -71,6 +72,7 @@ class Subprocess():
         proc = asyncio.subprocess.Process(transport, protocol, self._loop)
         self._proc = proc
         (out, err), _ = await asyncio.gather(proc.communicate(), self.callback_on_output())
+        self._terminate_callback(self._uid)
 
     async def callback_on_output(self):
         async for line in self._reader:
@@ -108,6 +110,11 @@ class ManagerInterface(ServiceInterface):
 
         return None
 
+    def subp_terminate_callback(self, uid):
+        p = self.findByUid(uid)
+        if p:
+            self._spawned_commands.remove(p)
+
     @signal()
     def callback_signal(self, uid, output, label) -> 'ss':
         print(f"callback signal: ({uid}) {label}: {output}")
@@ -116,7 +123,7 @@ class ManagerInterface(ServiceInterface):
     @method()
     async def Run(self, cmd: 's') -> 's':
         uid = str(uuid4())
-        subp = Subprocess(cmd, self.callback_signal, uid)
+        subp = Subprocess(cmd, self.callback_signal, uid, self.subp_terminate_callback)
         self._spawned_commands.append(
                 SpawnedCommand(
                     cmd, uid, subp))
