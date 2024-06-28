@@ -2,6 +2,7 @@
 import sys
 import os
 import functools
+from uuid import uuid4
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/..'))
 
@@ -47,10 +48,11 @@ class MyProtocol(asyncio.subprocess.SubprocessStreamProtocol):
                 self._reader.feed_eof()
 
 class Subprocess():
-    def __init__(self, cmd, callback):
+    def __init__(self, cmd, callback, uid):
         self._loop = asyncio.get_event_loop()
         self._cmd = cmd.split()
         self._callback = callback
+        self._uid = uid
 
     async def start(self):
         self._reader = asyncio.StreamReader(loop=self._loop)
@@ -70,25 +72,39 @@ class Subprocess():
 
     async def callback_on_output(self):
         async for line in self._reader:
-            self._callback(line, 'stdout')
+            self._callback(self._uid, line, 'stdout')
+
+
+class SpawnedCommand():
+    def __init__(self, cmd, uid, subprocess):
+       self._cmd = cmd
+       self._uid = uid
+       self._subp = subprocess
 
 
 class ManagerInterface(ServiceInterface):
     def __init__(self, name):
         super().__init__(name)
         self._string_prop = 'kevin'
+        self._spawned_commands = []
+        self._loop = asyncio.get_event_loop()
 
     @signal()
-    def callback_signal1(self, output, label) -> 's':
-        print(f"callback signal: {label}: {output}")
-        return output.decode("utf-8")
+    def callback_signal(self, uid, output, label) -> 'ss':
+        print(f"callback signal: ({uid}) {label}: {output}")
+        return [uid, output.decode("utf-8")]
 
     @method()
-    async def Run(self, cmd: 's', uid: 'i') -> 's':
-        self._subp1 = Subprocess(cmd, self.callback_signal1)
-        await self._subp1.start()
+    async def Run(self, cmd: 's') -> 's':
+        uid = str(uuid4())
+        subp = Subprocess(cmd, self.callback_signal, uid)
+        self._spawned_commands.append(
+                SpawnedCommand(
+                    cmd, uid, subp))
+        #await self._subp.start()
+        self._loop.create_task(subp.start())
         print(f"echo: ({uid}) {cmd}")
-        return 'started'
+        return uid
 
     @method()
     def Echo(self, what: 's') -> 's':
