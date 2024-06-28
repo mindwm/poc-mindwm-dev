@@ -6,29 +6,15 @@ import nats
 from uuid import uuid4
 from pprint import pprint
 from decouple import config
-from cleaner import Sanitizer
-from listener import NATS_listener
-from tmux import Tmux_manager
-from pipe_listener import PipeListener
-from text_processor import TextProcessor
-#from ai_processor import AiProcessor
+
+from modules.nats_listener import NATS_listener
+from modules.tmux_manager import Tmux_manager
+from modules.pipe_listener import PipeListener
+from modules.text_processor import TextProcessor
 
 
 async def main():
-#    print(f"MindWM Manager")
     env = {
-        #"OPENAI_API_KEY": config("OPENAI_API_KEY"),
-        #"OPENAI_API_BASE": config("OPENAI_API_BASE"),
-#            "MINDWM_VECTOR_UDP_HOST": config("MINDWM_CLIENT_VECTOR_UDP_HOST", default="127.0.0.1"),
-#            "MINDWM_VECTOR_UDP_PORT": config("MINDWM_CLIENT_VECTOR_UDP_PORT"),
-#            "MINDWM_NATS_HOST": config("MINDWM_CLIENT_NATS_HOST", default="127.0.0.1"),
-#            "MINDWM_NATS_PORT": config("MINDWM_CLIENT_NATS_PORT", default=4222, cast=int),
-#            "MINDWM_NATS_USER": config("MINDWM_CLIENT_NATS_USER", default="root"),
-#            "MINDWM_NATS_PASS": config("MINDWM_CLIENT_NATS_PASS", default="r00tpass"),
-#            "MINDWM_CLIENT_IN": config("MINDWM_CLIENT_NATS_SUBJECT_WORDS_IN"),
-#            "MINDWM_CLIENT_OUT": config("MINDWM_CLIENT_NATS_SUBJECT_WORDS_OUT"),
-#            "MINDWM_NATS_SUBJECT_FEEDBACK": config("MINDWM_CLIENT_NATS_SUBJECT_FEEDBACK"),
-#            "MINDWM_TMUX": config("MINDWM_TMUX"),
             "MINDWM_BACK_NATS_HOST": config("MINDWM_BACK_NATS_HOST", default="127.0.0.1"),
             "MINDWM_BACK_NATS_PORT": config("MINDWM_BACK_NATS_PORT", default=4222, cast=int),
             "MINDWM_BACK_NATS_USER": config("MINDWM_BACK_NATS_USER", default="root"),
@@ -108,20 +94,6 @@ async def main():
 
     await pipe_listener.init()
     await pipe_listener.loop()
-
-#    sanitizer = Sanitizer()
-#    tmux = Tmux_manager(config=env, socket_path=tmux_socket)
-
-#    nats_listener = NATS_listener(
-#            url = f"nats://{env['MINDWM_NATS_USER']}:{env['MINDWM_NATS_PASS']}@{env['MINDWM_NATS_HOST']}:{env['MINDWM_NATS_PORT']}",
-#            subject_in = f"{env['MINDWM_CLIENT_IN']}",
-#            subject_out = f"{env['MINDWM_CLIENT_OUT']}",
-#            transformer = sanitizer.feed_word
-#            )
-#    await nats_listener.connect()
-#    await nats_listener.listen()
-#    await tmux.init()
-
 
     while True:
         print("tick")

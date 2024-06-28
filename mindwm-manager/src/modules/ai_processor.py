@@ -9,8 +9,8 @@ import json
 
 class AiProcessor:
     prompts = {
-        "cmd_short_to_full": "./prompts/cmd_short_to_full",
-        "summarize_output": "./prompts/summarize_output",
+        "cmd_short_to_full": "data/prompts/cmd_short_to_full",
+        "summarize_output": "data/prompts/summarize_output",
         "query": "./prompts/query",
     }
     def __init__(self, config):

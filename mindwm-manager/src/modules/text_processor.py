@@ -32,10 +32,9 @@ class TextProcessor:
         #path = os.path.dirname(sys.modules[__name__].__file__)
         #print(output)
         path = os.path.dirname(sys.modules[self.__class__.__module__].__file__)
-        with open(f"{path}/templates/{template}.textfsm", "r") as f:
+        with open(f"data/templates/{template}.textfsm", "r") as f:
             parser = textfsm.TextFSM(io.StringIO(f.read()))
             header = parser.header
             #return tabulate(parser.ParseText(output), headers=header)
             return self.table2json((parser.ParseText(output), header))
             #return [parser.ParseText(output), header]
-
