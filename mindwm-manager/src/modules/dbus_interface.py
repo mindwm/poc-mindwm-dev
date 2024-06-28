@@ -199,9 +199,9 @@ class DbusInterface():
         pass
 
     async def init(self):
-        self.name = 'org.mindwm'
+        self.name = 'org.mindwm.client.manager'
         self.path = '/manager'
-        self.interface_name = 'mindwm.client'
+        self.interface_name = 'org.mindwm.client'
     
         bus = await MessageBus(bus_type = BusType.SESSION).connect()
         self.interface = ManagerInterface(self.interface_name)
