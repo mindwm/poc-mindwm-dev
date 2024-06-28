@@ -53,6 +53,7 @@ class Subprocess():
         self._cmd = cmd.split()
         self._callback = callback
         self._uid = uid
+        self._proc = None
 
     async def start(self):
         self._reader = asyncio.StreamReader(loop=self._loop)
@@ -68,11 +69,16 @@ class Subprocess():
             stderr = asyncio.subprocess.PIPE)
 
         proc = asyncio.subprocess.Process(transport, protocol, self._loop)
+        self._proc = proc
         (out, err), _ = await asyncio.gather(proc.communicate(), self.callback_on_output())
 
     async def callback_on_output(self):
         async for line in self._reader:
             self._callback(self._uid, line, 'stdout')
+
+    async def terminate(self):
+        if self._proc:
+            self._proc.terminate()
 
 
 class SpawnedCommand():
@@ -105,6 +111,11 @@ class ManagerInterface(ServiceInterface):
         self._loop.create_task(subp.start())
         print(f"echo: ({uid}) {cmd}")
         return uid
+
+    @method()
+    async def KillAll(self):
+        for p in self._spawned_commands:
+            await p._subp.terminate()
 
     @method()
     def Echo(self, what: 's') -> 's':
