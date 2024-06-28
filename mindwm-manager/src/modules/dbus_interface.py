@@ -117,6 +117,16 @@ class ManagerInterface(ServiceInterface):
         for p in self._spawned_commands:
             await p._subp.terminate()
 
+        self._spawned_commands.clear()
+
+    @method()
+    async def Kill(self, uid: 's'):
+        for p in self._spawned_commands:
+            if p._uid == uid:
+                await p._subp.terminate()
+                self._spawned_commands.remove(p)
+                return
+
     @method()
     def Echo(self, what: 's') -> 's':
         print(f"echo: {what}")
