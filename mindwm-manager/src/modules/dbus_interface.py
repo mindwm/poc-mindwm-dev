@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 import sys
 import os
 import functools
@@ -48,9 +49,17 @@ class MyProtocol(asyncio.subprocess.SubprocessStreamProtocol):
                 self._reader.feed_eof()
 
 class Subprocess():
-    def __init__(self, cmd, callback, uid, terminate_callback):
+    def __init__(self, cmd, output_regex, callback, uid, terminate_callback):
         self._loop = asyncio.get_event_loop()
         self._cmd = cmd.split()
+        try:
+            if output_regex != "":
+                self._output_regex = re.compile(output_regex)
+            else:
+                self._output_regex = None
+        except Exception as e:
+            self._output_regex = None
+
         self._callback = callback
         self._uid = uid
         self._proc = None
@@ -76,7 +85,12 @@ class Subprocess():
 
     async def callback_on_output(self):
         async for line in self._reader:
-            self._callback(self._uid, line, 'stdout')
+            if self._output_regex:
+                out_string = line.decode('utf-8')
+                if self._output_regex.match(out_string):
+                    self._callback(self._uid, line, 'stdout')
+            else:
+                self._callback(self._uid, line, 'stdout')
 
     async def terminate(self):
         if self._proc:
@@ -90,8 +104,9 @@ class Subprocess():
 
 
 class SpawnedCommand():
-    def __init__(self, cmd, uid, subprocess):
+    def __init__(self, cmd, output_regex, uid, subprocess):
        self._cmd = cmd
+       self._output_regex = output_regex
        self._uid = uid
        self._subp = subprocess
 
@@ -121,12 +136,17 @@ class ManagerInterface(ServiceInterface):
         return [uid, output.decode("utf-8")]
 
     @method()
-    async def Run(self, cmd: 's') -> 's':
+    async def Run(self, cmd: 's', output_regex: 's') -> 's':
         uid = str(uuid4())
-        subp = Subprocess(cmd, self.callback_signal, uid, self.subp_terminate_callback)
+        subp = Subprocess(
+                cmd,
+                output_regex,
+                self.callback_signal,
+                uid,
+                self.subp_terminate_callback)
         self._spawned_commands.append(
                 SpawnedCommand(
-                    cmd, uid, subp))
+                    cmd, output_regex, uid, subp))
         #await self._subp.start()
         self._loop.create_task(subp.start())
         print(f"echo: ({uid}) {cmd}")
